@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>typing</title>
+        <meta charset="utf-8">
+    </head>
+    <body>
+        <div id="iframe_frame">
+            <iframe id="frame" src="menu.html" frameborder="2"></iframe>
+        </div>
+    </body>
+</html>
+<script>
+    function send(url) {
+        document.getElementById("frame").src = url;
+    }
+</script>
+<style>
+    body {
+        overflow: hidden;
+        scrollbar-width: none;
+        margin: 0px;
+        height: 100vh;
+        position: relative;
+    }
+    body::-webkit-scrollbar {
+        display: none;
+    }
+    iframe {
+        width: 100%;
+        height: 100%;
+    }
+    #iframe_frame {
+        background-color: aqua;
+        position: absolute;
+        width: 600px;
+        height: 500px;
+        top: 0;right: 0;bottom: 0;left: 0;
+        margin: auto;
+    }
+</style>
