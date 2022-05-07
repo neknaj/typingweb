@@ -1,5 +1,3 @@
-// 参考 https://qiita.com/yukiyoshimura/items/752f3b873a263b1f3468
-
 class keyboard {
     cparts(file)
     {
