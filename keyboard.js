@@ -14,7 +14,7 @@ class Keyboard {
         }
         return rtt;
     }
-    s_sort() {
+    s_sort(strl) {
         let rtl = [];
         let li = 0;
         for (let tm of strl) {
@@ -80,7 +80,7 @@ class Keyboard {
         }
     }
     setcparts() {
-        this.ckeys = cparts();
+        this.ckeys = this.cparts();
         this.ckeyskeys = Object.keys(this.ckeys)
         this.ckeyskeys = this.s_sort(this.ckeyskeys)
     }

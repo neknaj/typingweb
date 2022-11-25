@@ -5,6 +5,7 @@
         <meta charset="utf-8">
         <link href="default.css" rel="stylesheet">
         <script src="keyboard.js"></script>
+        <script src="playpage.js"></script>
     </head>
     <body>
         <div id="area">
@@ -12,5 +13,8 @@
     </body>
 </html>
 <script>
-    document.getElementById("area").innerHTML = location.search.substr(1)
+    document.getElementById("area").innerHTML = location.search.substr(1);
+
+    let a = new PlayPage();
+    console.log(a)
 </script>
