@@ -103,7 +103,7 @@ function server_request(req, response) {
    // console.log(req.rawHeaders[3])
    let log = `\x1b[33m${(new Date()).toLocaleString()}\x1b[39m  requrl: \x1b[34m${req.url}\x1b[39m path: \x1b[34m${reqparse.path}\x1b[39m response: \x1b[36m${head.code}\x1b[39m res: \x1b[35m${reqparse.pathname}\x1b[39m\nUA: \x1b[34m${req.rawHeaders} \x1b[39m\n`
     console.log(log);
-    //fs.appendFile("./homepagelog.log", log,()=>{});
+    //fs.appendFile("./serverlog.log", log,()=>{});
 //
 // end
 //
