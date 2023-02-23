@@ -45,11 +45,15 @@ function server_request(req, response) {
     //
     // get file
     //
-    if (fs.existsSync("data"+reqparse.pathname)) {
-        res = fs.readFileSync("data"+reqparse.pathname);
+    let filepath = "data"+reqparse.pathname;
+    if (reqparse.pathname.endsWith(".ntkd")) {
+        filepath = "keyboards"+reqparse.pathname;
     }
-    else if (fs.existsSync("data"+reqparse.pathname+".html")) {
-        res = fs.readFileSync("data"+reqparse.pathname+".html");
+    if (fs.existsSync(filepath)) {
+        res = fs.readFileSync(filepath);
+    }
+    else if (fs.existsSync(filepath+".html")) {
+        res = fs.readFileSync(filepath+".html");
         reqparse.pathname += ".html";
     }
     else {

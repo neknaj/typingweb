@@ -4,17 +4,16 @@
         <title>typing</title>
         <meta charset="utf-8">
         <link href="default.css" rel="stylesheet">
-        <script src="keyboard.js"></script>
         <script src="playpage.js"></script>
     </head>
     <body>
-        <div id="area">
-        </div>
+        <canvas id="Display"></canvas>
+        <p id="txt"></p>
     </body>
 </html>
 <script>
-    document.getElementById("area").innerHTML = location.search.substr(1);
+    document.getElementById("txt").innerHTML = location.search.substr(1);
 
-    let a = new PlayPage();
+    let a = new Play();
     console.log(a)
 </script>
