@@ -10,11 +10,12 @@
         <script src="layout.js"></script>
         <script src="typing.js"></script>
         <script src="cdom.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"></script>
     </head>
     <body>
         <div class="resizer_Hcontainer" id="mainarea" data-proportion="5:2">
             <div class="resizer_content">
-                <div class="resizer_Vcontainer" data-proportion="4:1">
+                <div class="resizer_Vcontainer" data-proportion="7:3">
                     <div class="resizer_content">
                         <div id="playArea">
                             <div id="Title"></div>
@@ -24,7 +25,8 @@
                         </div>
                     </div>
                     <div class="resizer_splitter"></div>
-                    <div class="resizer_content">
+                    <div class="resizer_content" id="GraphArea">
+                        <canvas id="TypingGraph"></canvas>
                     </div>
                 </div>
             </div>
@@ -36,6 +38,33 @@
                     </div>
                     <div class="resizer_splitter"></div>
                     <div class="resizer_content">
+                        <table style="width: 100%;height: 100%">
+                            <tr>
+                                <th>速さ</th>
+                                <td id="Speed">0</td>
+                                <td>type/s</td>
+                            </tr>
+                            <tr>
+                                <th>精度</th>
+                                <td id="Accuracy">0</td>
+                                <td>%</td>
+                            </tr>
+                            <tr>
+                                <th>時間</th>
+                                <td id="Time">0</td>
+                                <td>s</td>
+                            </tr>
+                            <tr>
+                                <th>打鍵</th>
+                                <td id="Typed">0</td>
+                                <td>type</td>
+                            </tr>
+                            <tr>
+                                <th>誤打</th>
+                                <td id="Failed">0</td>
+                                <td>type</td>
+                            </tr>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -50,20 +79,26 @@
 var typing;
 var typingline;
 var typingnextQues;
+var typingchart;
 var status = "title";
 
 window.onload = init;
 async function init() {
     typing = loadntq("question/1.ntq");
-    keyboard = JSON.parse(fRead("keyboard.json"))
+    keyboard = JSON.parse(fRead("keyboard.json"));
+    typingnextQues = new Typing(typing.lines[typing.line],keyboard).getQuesView();
     updateView();
+    makeChart();
 };
 
 function loadntq(filename) {
     const _data = fRead(filename).replace(/\r\n/g,"\n").split("\n");
     const res = {
         title: "",
+        start: null,
         line: 0,
+        type: 0,
+        failed: 0,
     }
     const lines = [];
     for (const i of _data) {
@@ -94,14 +129,46 @@ function fRead(filename) {
 function updateView() {
     Title.innerText = typing.title;
     if (status=="title") {
+        Next.replaceChildren(typingnextQues);
         Ques.replaceChildren(elm("span",{},[textelm("スペースを押して開始")]));
     }
     else if (status=="play") {
         Ques.replaceChildren(typingline.getQuesView());
         Input.replaceChildren(typingline.getInputView());
         Next.replaceChildren(typingnextQues);
+        Time.innerText = (Date.now()-typing.start)/1000;
+        Typed.innerText = typing.type;
+        Failed.innerText = typing.failed;
+        Speed.innerText = ((typing.type-typing.failed)/((Date.now()-typing.start)/1000)).toString().slice(0,5);
+        Accuracy.innerText = ((typing.type-typing.failed)/typing.type*100).toString().slice(0,5);
+    }
+    { // chart size
+        let rect = GraphArea.getBoundingClientRect();
+        if (TypingGraph.width!=rect.width||TypingGraph.height!=rect.height) {
+            TypingGraph.setAttribute("width",rect.width);
+            TypingGraph.setAttribute("height",rect.height);
+            typingchart.update();
+            console.log("a")
+        }
     }
 }
+
+function makeChart() {
+    typingchart = new Chart(TypingGraph,{type:"line",data:{labels:[],datasets:[
+        {
+            label: "total speed",
+            data: [],
+            borderColor: "rgba(255,100,255,1)",
+        },
+        {
+            label: "moment speed",
+            data: [],
+            borderColor: "rgba(100,255,255,1)",
+        }
+    ]}});
+}
+
+setInterval(updateView,100);
 
 </script>
 <script>
@@ -114,11 +181,32 @@ document.addEventListener("keydown",(e)=>{
             status = "play";
             typingline = new Typing(typing.lines[typing.line],keyboard);
             typingnextQues = new Typing(typing.lines[typing.line+1],keyboard).getQuesView();
+            typing.start = Date.now();
+            TypeHistory.replaceChildren(elm("span",{},[]));
+            makeChart();
             updateView();
         }
     }
     else if (status=="play") {
         var [key,endline] = typingline.key(e.key);
+        typing.type++;
+        if (key==false) {
+            typing.failed++;
+        }
+        if (key) { // graph
+            typingchart.data.labels.push((Date.now()-typing.start)/1000);
+            console.log(typingchart)
+            typingchart.data.datasets[0].data.push((typing.type-typing.failed)/((Date.now()-typing.start)/1000));
+            const len = 4;
+            if (typingchart.data.labels.length>len) {
+                console.log(Date.now()-typing.start,typingchart.data.labels[typingchart.data.labels.length-1-len]*1000)
+                typingchart.data.datasets[1].data.push(len/((Date.now()-typing.start-typingchart.data.labels[typingchart.data.labels.length-1-len]*1000)/1000));
+            }
+            else {
+                typingchart.data.datasets[1].data.push((typing.type-typing.failed)/((Date.now()-typing.start)/1000));
+            }
+            typingchart.update();
+        }
         console.log(key,endline);
         if (endline) {
             typing.line++;
@@ -129,19 +217,20 @@ document.addEventListener("keydown",(e)=>{
                     typingnextQues = new Typing(typing.lines[typing.line+1],keyboard).getQuesView();
                 }
                 else {
-                    Next.replaceChildren(elm("span",{},[textelm("end")]));
+                    typingnextQues = elm("span",{},[textelm("end")]);
                 }
             }
             else {
                 status = "finish";
-                Ques.replaceChildren(elm("span",{},[textelm("スペースを押してタイトルへ")]));
-                Input.replaceChildren(elm("span",{},[]));
+                Ques.replaceChildren(elm("span",{},[textelm("お疲れ様でした")]));
+                Input.replaceChildren(elm("span",{},[textelm("スペースを押してタイトルへ")]));
                 Next.replaceChildren(elm("span",{},[]));
             }
         }
     }
     else if (status=="finish") {
         if (e.key==" ") {
+            init();
             status = "title";
         }
     }
@@ -159,7 +248,6 @@ document.addEventListener("keydown",(e)=>{
         font-family: "Noto Sans JP", sans-serif;
         font-optical-sizing: auto;
         font-style: normal;
-        font-size: 110%;
     }
     body {
         background-color: rgb(0, 2, 10);
@@ -167,6 +255,7 @@ document.addEventListener("keydown",(e)=>{
         position: fixed;
         padding: 0;
         margin: 0;
+        font-size: 30px;
     }
     #imgOutArea {
         height: 100%;
@@ -191,9 +280,10 @@ document.addEventListener("keydown",(e)=>{
     }
     
     #playArea {
+        font-size: 40px;
         & #Ques {
             & rt {
-                font-size: 20px;
+                font-size: 30px;
                 color: rgb(255, 255, 255);
                 & .s1 {
                     color: rgb(255, 255, 255);
@@ -209,7 +299,7 @@ document.addEventListener("keydown",(e)=>{
                 }
             }
             & rb, & .noruby {
-                font-size: 50px;
+                font-size: 70px;
                 color: rgb(255, 255, 255);
                 &.s1 {
                     color: rgb(255, 255, 255);
@@ -225,8 +315,8 @@ document.addEventListener("keydown",(e)=>{
                 }
             }
         }
-        & #Input span {
-            font-size: 50px;
+        & #Input>span>span {
+            font-size: 70px;
             color: rgb(255, 255, 255);
             &.s3 {
                 color: rgb(164, 164, 255);
@@ -240,8 +330,8 @@ document.addEventListener("keydown",(e)=>{
     #playArea {
         position: relative;
         height: 100%;
-        font-size: 50px;
         &>div#Title {
+            font-size: 60px;
             position: absolute;
             top: 50px;
             left: 50%;
@@ -249,7 +339,7 @@ document.addEventListener("keydown",(e)=>{
         }
         &>div#Ques {
             position: absolute;
-            top: calc(50% - 50.5px + 5% - 70px);
+            top: calc(50% - 50.5px + 5% - 2% - 70px);
             left: 40px;
             width: max-content;
         }
@@ -265,10 +355,10 @@ document.addEventListener("keydown",(e)=>{
             bottom: 10px;
             width: max-content;
             & rt {
-                font-size: 15px;
+                font-size: 20px;
             }
             & rb, & .noruby {
-                font-size: 25px;
+                font-size: 40px;
             }
         }
     }
@@ -278,7 +368,7 @@ document.addEventListener("keydown",(e)=>{
             display: block;
         }
         span {
-            font-size: 25px;
+            font-size: 35px;
             color: rgb(255, 255, 255);
             &.s3 {
                 color: rgb(164, 164, 255);
