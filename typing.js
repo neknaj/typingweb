@@ -51,7 +51,7 @@ class Typing {
         }
         let f = false;
         let confirm = false;
-        if (name.length!=1) {return false;}
+        if (name.length!=1) {return [false,false];}
         this.expect.forEach((x)=>{
             x[1].forEach((exp)=>{
                 if (f) {return false;}
@@ -84,7 +84,7 @@ class Typing {
             this.iscorrect[this.cursor] = 2;
             this.beforfailure = name;
         }
-        return f;
+        return [f,this.cursor==this.qkana.length];
     }
     getQuesView() {
         let queselm = elm("span",{},[]);

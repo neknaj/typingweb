@@ -17,8 +17,10 @@
                 <div class="resizer_Vcontainer" data-proportion="4:1">
                     <div class="resizer_content">
                         <div id="playArea">
+                            <div id="Title"></div>
                             <div id="Ques"></div>
                             <div id="Input"></div>
+                            <div id="Next"></div>
                         </div>
                     </div>
                     <div class="resizer_splitter"></div>
@@ -30,6 +32,7 @@
             <div class="resizer_content">
                 <div class="resizer_Vcontainer" data-proportion="5:2">
                     <div class="resizer_content">
+                        <div id="TypeHistory"></div>
                     </div>
                     <div class="resizer_splitter"></div>
                     <div class="resizer_content">
@@ -45,30 +48,36 @@
 <script>
 
 var typing;
+var typingline;
+var typingnextQues;
+var status = "title";
 
 window.onload = init;
 async function init() {
-    res = loadntq("question/1.ntq");
+    typing = loadntq("question/1.ntq");
     keyboard = JSON.parse(fRead("keyboard.json"))
-    typing = new Typing(res[0],keyboard);
     updateView();
 };
 
 function loadntq(filename) {
     const _data = fRead(filename).replace(/\r\n/g,"\n").split("\n");
-    const res = [];
+    const res = {
+        title: "",
+        line: 0,
+    }
+    const lines = [];
     for (const i of _data) {
         console.log(i)
-        if (i[0]=="#") {continue}
-        res.push(ntqparser(i));
+        if (i[0]=="#") {
+            if (i.startsWith("#title ")) {res.title = i.slice(7)}
+            continue;
+        }
+        lines.push(ntqparser(i));
     }
-    console.log(res)
-    // for (const i of res) {
-    //     console.table(i)
-    // }
-    for (const i of res) {
+    for (const i of lines) {
         console.table(i.map((i)=>{return i.map((x)=>{if(x instanceof Array){return x.join(", ")};return x})}))
     }
+    res.lines = lines;
     return res;
 }
 
@@ -83,18 +92,59 @@ function fRead(filename) {
 };
 
 function updateView() {
-    Ques.replaceChildren(typing.getQuesView());
-    Input.replaceChildren(typing.getInputView());
+    Title.innerText = typing.title;
+    if (status=="title") {
+        Ques.replaceChildren(elm("span",{},[textelm("スペースを押して開始")]));
+    }
+    else if (status=="play") {
+        Ques.replaceChildren(typingline.getQuesView());
+        Input.replaceChildren(typingline.getInputView());
+        Next.replaceChildren(typingnextQues);
+    }
 }
 
-</script>
-<script>
 </script>
 <script>
 
 document.addEventListener("keydown",(e)=>{
     console.log("keydown",e.key)
-    typing.key(e.key);
+    if (status=="title") {
+        if (e.key==" ") {
+            typing.line = 0;
+            status = "play";
+            typingline = new Typing(typing.lines[typing.line],keyboard);
+            typingnextQues = new Typing(typing.lines[typing.line+1],keyboard).getQuesView();
+            updateView();
+        }
+    }
+    else if (status=="play") {
+        var [key,endline] = typingline.key(e.key);
+        console.log(key,endline);
+        if (endline) {
+            typing.line++;
+            TypeHistory.appendChild(typingline.getInputView());
+            if (typing.lines.length>typing.line) {
+                typingline = new Typing(typing.lines[typing.line],keyboard);
+                if (typing.lines.length>typing.line+1) {
+                    typingnextQues = new Typing(typing.lines[typing.line+1],keyboard).getQuesView();
+                }
+                else {
+                    Next.replaceChildren(elm("span",{},[textelm("end")]));
+                }
+            }
+            else {
+                status = "finish";
+                Ques.replaceChildren(elm("span",{},[textelm("スペースを押してタイトルへ")]));
+                Input.replaceChildren(elm("span",{},[]));
+                Next.replaceChildren(elm("span",{},[]));
+            }
+        }
+    }
+    else if (status=="finish") {
+        if (e.key==" ") {
+            status = "title";
+        }
+    }
     updateView();
 },false);
 
@@ -105,6 +155,7 @@ document.addEventListener("keydown",(e)=>{
 </style>
 <style>
     * {
+        user-select: none;
         font-family: "Noto Sans JP", sans-serif;
         font-optical-sizing: auto;
         font-style: normal;
@@ -189,15 +240,52 @@ document.addEventListener("keydown",(e)=>{
     #playArea {
         position: relative;
         height: 100%;
+        font-size: 50px;
+        &>div#Title {
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
         &>div#Ques {
             position: absolute;
-            top: calc(50% - 50.5px - 70px);
+            top: calc(50% - 50.5px + 5% - 70px);
             left: 40px;
+            width: max-content;
         }
         &>div#Input {
             position: absolute;
-            top: calc(50% - 50.5px + 70px);
+            top: calc(50% - 50.5px + 5% + 70px);
             left: 40px;
+            width: max-content;
+        }
+        &>div#Next {
+            position: absolute;
+            right: 40px;
+            bottom: 10px;
+            width: max-content;
+            & rt {
+                font-size: 15px;
+            }
+            & rb, & .noruby {
+                font-size: 25px;
+            }
+        }
+    }
+
+    #TypeHistory {
+        &>span {
+            display: block;
+        }
+        span {
+            font-size: 25px;
+            color: rgb(255, 255, 255);
+            &.s3 {
+                color: rgb(164, 164, 255);
+            }
+            &.s4 {
+                color: rgb(255, 132, 132);
+            }
         }
     }
 </style>
