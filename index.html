@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Neknaj Typing Web</title>
+        <meta charset="utf*8">
+        <meta property="og:title" content="Neknaj Typing Web">
+        <meta property="og:description" content="typing software for web">
+        <meta property="description" content="typing software for web">
+        <link rel="stylesheet" href="layout.css">
+        <script src="layout.js"></script>
+    </head>
+    <body>
+        <div class="resizer_Hcontainer" id="mainarea" data-proportion="5:2">
+            <div class="resizer_content">
+                <div class="resizer_Vcontainer" data-proportion="4:1">
+                    <div class="resizer_content">
+                        <div id="imgOutArea">
+                            <div id="imgOutPadding"></div>
+                            <canvas id="cnv"></canvas>
+                        </div>
+                    </div>
+                    <div class="resizer_splitter"></div>
+                    <div class="resizer_content">
+                    </div>
+                </div>
+            </div>
+            <div class="resizer_splitter"></div>
+            <div class="resizer_content">
+            </div>
+        </div>
+    </body>
+</html>
+<script>
+
+var canvasScale = 0;
+function resize() {
+    {
+        let scale = 1.05**canvasScale;
+        const dw = 1920;
+        const dh = 1080;
+        parent = imgOutArea.getBoundingClientRect();
+        let ww = parent.width;
+        let wh = parent.height;
+        {
+            let ws = (ww-25)/dw;
+            let hs = (wh-25)/dh;
+            console.log(ws,hs)
+            scale *= Math.min(ws,hs);
+        }
+        imgOutPadding.style.width = `${dw*scale+20}px`;
+        imgOutPadding.style.height = `${dh*scale+20}px`;
+        if (dw*scale+20<=ww&&dh*scale+20<=wh) {
+            cnv.style.transform = "translate(-50%,-50%) scale("+scale.toString()+","+scale.toString()+")";
+            cnv.style.transformOrigin = "center center";
+            cnv.style.left = "50%";
+            cnv.style.top = "50%";
+        }
+        else {
+            cnv.style.transform = "scale("+scale.toString()+","+scale.toString()+")";
+            cnv.style.transformOrigin = "top left";
+            cnv.style.left = "10px";
+            cnv.style.top = "10px";
+        }
+    }
+};
+window.onresize = resize;
+window.onload = init;
+function init() {
+    cnv.width = 1920;
+    cnv.height = 1080;
+    resize();
+};
+</script>
+<script>
+</script>
+<script>
+
+document.addEventListener("keydown",(e)=>{
+    console.log("keydown",e.keyCode)
+},false);
+
+
+</script>
+<style>
+    body {
+        background-color: rgb(0, 2, 10);
+        color: white;
+        position: fixed;
+        padding: 0;
+        margin: 0;
+    }
+    #imgOutArea {
+        height: 100%;
+        width: 100%;
+        overflow: auto;
+        position: relative;
+        padding: 0;
+        margin: 0;
+    }
+    #imgOutArea>canvas {
+        cursor: crosshair;
+        touch-action: none;
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        transform-origin: top left;
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+    #mainarea {
+        height: 100dvh;
+        width: 100dvw;
+    }
+</style>

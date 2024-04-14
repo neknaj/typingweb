@@ -1,0 +1,47 @@
+/* resizer */
+.resizer_Vcontainer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    & > .resizer_content {
+        min-height: 0px;
+        height: 100%;
+        overflow: hidden;
+        padding: 3px;
+    }
+    & > .resizer_splitter {
+        height: 2px;
+        margin: 2px;
+        width: calc(100% - 10px);
+        border-radius: 3px;
+        flex: none;
+        cursor: row-resize;
+        background-color: #7c7c7c;
+    }
+    & > .resizer_splitter:hover {
+        background-color: #acacac;
+    }
+}
+.resizer_Hcontainer {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    & > .resizer_content {
+        min-width: 0px;
+        width: 100%;
+        overflow: hidden;
+        padding: 3px;
+    }
+    & > .resizer_splitter {
+        width: 2px;
+        margin: 2px;
+        height: calc(100% - 10px);
+        border-radius: 3px;
+        flex: none;
+        cursor: col-resize;
+        background-color: #7c7c7c;
+    }
+    & > .resizer_splitter:hover {
+        background-color: #acacac;
+    }
+}
