@@ -141,16 +141,21 @@ function updateMenu() {
         menudiv.appendChild(elm("div",{},[textelm(url)]));
         if (url=="") {continue;}
         const data = fRead(url);
+        var base;
         console.log(data.replace(/\r\n/g,"\n").split("\n")[0])
         if (data.replace(/\r\n/g,"\n").split("\n")[0]!="ntqmenu") {console.error("不正なファイル",url);menudiv.appendChild(elm("span",{class:"invalid"},[textelm("不正なファイル")]));continue;}
         for (let q of data.replace(/\r\n/g,"\n").split("\n").slice(1)) {
+            if (q.startsWith("#base ")) {
+                base = q.slice(6);
+                continue;
+            }
             const c = q.split(",")
             const btn = elm("button",{},[
                 elm("span",{class:"l"},[textelm(c[0])]),
                 elm("span",{class:"r"},[textelm(c[1])]),
             ])
             btn.onclick = ()=>{
-                typingurl = c[0];
+                typingurl = base+c[0];
                 status = "title";
                 init();
             }
