@@ -37,6 +37,6 @@ function resizer_Hcontainer_addEL (container,framesMin,callback=()=>{}) {
     container.querySelectorAll(":scope > .resizer_content")[1].style.flexBasis = `${(p[1]*100/(p[0]+p[1]))}%`;
 }
 window.addEventListener("load",()=>{
-    document.querySelectorAll(".resizer_Vcontainer").forEach((x)=>{resizer_Vcontainer_addEL(x,100,resize);});
-    document.querySelectorAll(".resizer_Hcontainer").forEach((x)=>{resizer_Hcontainer_addEL(x,100,resize);});
+    document.querySelectorAll(".resizer_Vcontainer").forEach((x)=>{resizer_Vcontainer_addEL(x,100);});
+    document.querySelectorAll(".resizer_Hcontainer").forEach((x)=>{resizer_Hcontainer_addEL(x,100);});
 })

@@ -8,15 +8,17 @@
         <meta property="description" content="typing software for web">
         <link rel="stylesheet" href="layout.css">
         <script src="layout.js"></script>
+        <script src="typing.js"></script>
+        <script src="cdom.js"></script>
     </head>
     <body>
         <div class="resizer_Hcontainer" id="mainarea" data-proportion="5:2">
             <div class="resizer_content">
                 <div class="resizer_Vcontainer" data-proportion="4:1">
                     <div class="resizer_content">
-                        <div id="imgOutArea">
-                            <div id="imgOutPadding"></div>
-                            <canvas id="cnv"></canvas>
+                        <div id="playArea">
+                            <div id="Ques"></div>
+                            <div id="Input"></div>
                         </div>
                     </div>
                     <div class="resizer_splitter"></div>
@@ -26,62 +28,87 @@
             </div>
             <div class="resizer_splitter"></div>
             <div class="resizer_content">
+                <div class="resizer_Vcontainer" data-proportion="5:2">
+                    <div class="resizer_content">
+                    </div>
+                    <div class="resizer_splitter"></div>
+                    <div class="resizer_content">
+                    </div>
+                </div>
             </div>
         </div>
     </body>
 </html>
+<script>module={}</script>
+<script src="./ntq.js"></script>
+<script>const ntqparser = module.exports.parse;</script>
 <script>
 
-var canvasScale = 0;
-function resize() {
-    {
-        let scale = 1.05**canvasScale;
-        const dw = 1920;
-        const dh = 1080;
-        parent = imgOutArea.getBoundingClientRect();
-        let ww = parent.width;
-        let wh = parent.height;
-        {
-            let ws = (ww-25)/dw;
-            let hs = (wh-25)/dh;
-            console.log(ws,hs)
-            scale *= Math.min(ws,hs);
-        }
-        imgOutPadding.style.width = `${dw*scale+20}px`;
-        imgOutPadding.style.height = `${dh*scale+20}px`;
-        if (dw*scale+20<=ww&&dh*scale+20<=wh) {
-            cnv.style.transform = "translate(-50%,-50%) scale("+scale.toString()+","+scale.toString()+")";
-            cnv.style.transformOrigin = "center center";
-            cnv.style.left = "50%";
-            cnv.style.top = "50%";
-        }
-        else {
-            cnv.style.transform = "scale("+scale.toString()+","+scale.toString()+")";
-            cnv.style.transformOrigin = "top left";
-            cnv.style.left = "10px";
-            cnv.style.top = "10px";
-        }
-    }
-};
-window.onresize = resize;
+var typing;
+
 window.onload = init;
-function init() {
-    cnv.width = 1920;
-    cnv.height = 1080;
-    resize();
+async function init() {
+    res = loadntq("question/1.ntq");
+    keyboard = JSON.parse(fRead("keyboard.json"))
+    typing = new Typing(res[0],keyboard);
+    updateView();
 };
+
+function loadntq(filename) {
+    const _data = fRead(filename).replace(/\r\n/g,"\n").split("\n");
+    const res = [];
+    for (const i of _data) {
+        console.log(i)
+        if (i[0]=="#") {continue}
+        res.push(ntqparser(i));
+    }
+    console.log(res)
+    // for (const i of res) {
+    //     console.table(i)
+    // }
+    for (const i of res) {
+        console.table(i.map((i)=>{return i.map((x)=>{if(x instanceof Array){return x.join(", ")};return x})}))
+    }
+    return res;
+}
+
+
+function fRead(filename) {
+    var hr = new XMLHttpRequest();
+    hr.open("GET", filename, false);
+    hr.send(null);
+    if (hr.status == 200 || hr.status == 304) {
+        return hr.responseText.replace(/\r\n/g, "\n");
+    }else {throw "err " + filename;}
+};
+
+function updateView() {
+    Ques.replaceChildren(typing.getQuesView());
+}
+
 </script>
 <script>
 </script>
 <script>
 
 document.addEventListener("keydown",(e)=>{
-    console.log("keydown",e.keyCode)
+    console.log("keydown",e.key)
+    typing.key(e.key);
+    updateView();
 },false);
 
 
 </script>
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@200&display=swap');
+</style>
+<style>
+    * {
+        font-family: "Noto Sans JP", sans-serif;
+        font-optical-sizing: auto;
+        font-style: normal;
+        font-size: 110%;
+    }
     body {
         background-color: rgb(0, 2, 10);
         color: white;
@@ -109,5 +136,34 @@ document.addEventListener("keydown",(e)=>{
     #mainarea {
         height: 100dvh;
         width: 100dvw;
+    }
+    
+    #playArea {
+        & rt {
+            font-size: 20px;
+            color: gray;
+            & .s1 {
+                color: gray;
+            }
+            & .s2 {
+                color: rgb(255, 173, 173);
+            }
+            & .s3 {
+                color: rgb(164, 164, 255);
+            }
+        }
+        & rb, & .noruby {
+            font-size: 40px;
+            color: gray;
+            &.s1 {
+                color: gray;
+            }
+            &.s2 {
+                color: rgb(255, 173, 173);
+            }
+            &.s3 {
+                color: rgb(164, 164, 255);
+            }
+        }
     }
 </style>

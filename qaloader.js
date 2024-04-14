@@ -1,0 +1,3 @@
+function ntqloader(data) {
+    return;
+}
