@@ -10,7 +10,7 @@
         padding: 3px;
     }
     & > .resizer_splitter {
-        height: 2px;
+        height: 3px;
         margin: 2px;
         width: calc(100% - 10px);
         border-radius: 3px;
@@ -33,7 +33,7 @@
         padding: 3px;
     }
     & > .resizer_splitter {
-        width: 2px;
+        width: 3px;
         margin: 2px;
         height: calc(100% - 10px);
         border-radius: 3px;

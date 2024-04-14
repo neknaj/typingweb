@@ -12,16 +12,28 @@
         <script src="cdom.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"></script>
     </head>
-    <body>
+    <body lang="jp">
         <div class="resizer_Hcontainer" id="mainarea" data-proportion="5:2">
             <div class="resizer_content">
                 <div class="resizer_Vcontainer" data-proportion="7:3">
                     <div class="resizer_content">
-                        <div id="playArea">
+                        <div id="playArea" style="display: none;">
                             <div id="Title"></div>
                             <div id="Ques"></div>
                             <div id="Input"></div>
                             <div id="Next"></div>
+                        </div>
+                        <div id="menuArea">
+                            <h1 class="apptitle">Neknaj Typing Web</h1>
+                            <div class="resizer_Vcontainer" data-proportion="7:1">
+                                <div class="resizer_content">
+                                    <div id="menu"></div>
+                                </div>
+                                <div class="resizer_splitter"></div>
+                                <div class="resizer_content">
+                                    <textarea id="menuUrls">menu.csv</textarea>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="resizer_splitter"></div>
@@ -76,15 +88,17 @@
 <script>const ntqparser = module.exports.parse;</script>
 <script>
 
+var typingurl;
 var typing;
 var typingline;
 var typingnextQues;
 var typingchart;
-var status = "title";
+var status = "menu";
 
 window.onload = init;
 async function init() {
-    typing = loadntq("question/1.ntq");
+    updateMenu();
+    typing = loadntq(typingurl);
     keyboard = JSON.parse(fRead("keyboard.json"));
     typingnextQues = new Typing(typing.lines[typing.line],keyboard).getQuesView();
     updateView();
@@ -116,6 +130,36 @@ function loadntq(filename) {
     return res;
 }
 
+menuUrls.oninput = updateMenu;
+menuUrls.onchange = updateMenu;
+function updateMenu() {
+    const menudiv = elm("div",{},[]);
+    const urls = menuUrls.value.replace(/\r\n/g,"\n").split("\n");
+    console.log("updatemenu")
+    console.log(urls)
+    for (let url of urls) {
+        menudiv.appendChild(elm("div",{},[textelm(url)]));
+        if (url=="") {continue;}
+        const data = fRead(url);
+        console.log(data.replace(/\r\n/g,"\n").split("\n")[0])
+        if (data.replace(/\r\n/g,"\n").split("\n")[0]!="ntqmenu") {console.error("不正なファイル",url);menudiv.appendChild(elm("span",{class:"invalid"},[textelm("不正なファイル")]));continue;}
+        for (let q of data.replace(/\r\n/g,"\n").split("\n").slice(1)) {
+            const c = q.split(",")
+            const btn = elm("button",{},[
+                elm("span",{class:"l"},[textelm(c[0])]),
+                elm("span",{class:"r"},[textelm(c[1])]),
+            ])
+            btn.onclick = ()=>{
+                typingurl = c[0];
+                status = "title";
+                init();
+            }
+            menudiv.appendChild(btn)
+        }
+    }
+    menu.replaceChildren(menudiv);
+}
+
 
 function fRead(filename) {
     var hr = new XMLHttpRequest();
@@ -129,8 +173,12 @@ function fRead(filename) {
 function updateView() {
     Title.innerText = typing.title;
     if (status=="title") {
+        playArea.style.display = "block";
+        menuArea.style.display = "none";
         Next.replaceChildren(typingnextQues);
         Ques.replaceChildren(elm("span",{},[textelm("スペースを押して開始")]));
+        Input.replaceChildren(elm("span",{},[]));
+        Next.replaceChildren(elm("span",{},[textelm("エスケープを押してメニューへ")]));
     }
     else if (status=="play") {
         Ques.replaceChildren(typingline.getQuesView());
@@ -141,6 +189,15 @@ function updateView() {
         Failed.innerText = typing.failed;
         Speed.innerText = ((typing.type-typing.failed)/((Date.now()-typing.start)/1000)).toString().slice(0,5);
         Accuracy.innerText = ((typing.type-typing.failed)/typing.type*100).toString().slice(0,5);
+    }
+    else if (status=="menu") {
+        playArea.style.display = "none";
+        menuArea.style.display = "block";
+    }
+    else if (status=="finish") {
+        Ques.replaceChildren(elm("span",{},[textelm("お疲れ様でした")]));
+        Input.replaceChildren(elm("span",{},[textelm("スペースを押してタイトルへ")]));
+        Next.replaceChildren(elm("span",{},[]));
     }
     { // chart size
         let rect = GraphArea.getBoundingClientRect();
@@ -186,6 +243,9 @@ document.addEventListener("keydown",(e)=>{
             makeChart();
             updateView();
         }
+        else if (e.key=="Escape") {
+            status = "menu";
+        }
     }
     else if (status=="play") {
         var [key,endline] = typingline.key(e.key);
@@ -222,9 +282,6 @@ document.addEventListener("keydown",(e)=>{
             }
             else {
                 status = "finish";
-                Ques.replaceChildren(elm("span",{},[textelm("お疲れ様でした")]));
-                Input.replaceChildren(elm("span",{},[textelm("スペースを押してタイトルへ")]));
-                Next.replaceChildren(elm("span",{},[]));
             }
         }
     }
@@ -233,6 +290,8 @@ document.addEventListener("keydown",(e)=>{
             init();
             status = "title";
         }
+    }
+    else if (status=="menu") {
     }
     updateView();
 },false);
@@ -248,6 +307,14 @@ document.addEventListener("keydown",(e)=>{
         font-family: "Noto Sans JP", sans-serif;
         font-optical-sizing: auto;
         font-style: normal;
+        color-scheme: dark;
+    }
+    .apptitle {
+        font-size: 35px;
+        text-align: center;
+        font-weight: inherit;
+        height: 45px;
+        margin: 10px;
     }
     body {
         background-color: rgb(0, 2, 10);
@@ -376,6 +443,48 @@ document.addEventListener("keydown",(e)=>{
             &.s4 {
                 color: rgb(255, 132, 132);
             }
+        }
+    }
+    
+    #menuArea {
+        width: 100%;
+        height: 100%;
+        margin-top: -10px;
+        & .resizer_Vcontainer {
+            height: calc(100% - 65px);
+        }
+        & #menuUrls {
+            color: inherit;
+            background: none;
+            outline: none;
+            border: none;
+            width: 100%;
+            height: 100%;
+            resize: none;
+        }
+        & #menu {
+            height: 100%;
+            display: block;
+            overflow-x: scroll;
+        }
+        & #menu button {
+            position: relative;
+            padding: 10px;
+            margin-left: 100px;
+            width: calc(100% - 130px);
+            font-size: 30px;
+            height: 50px;
+            & span {
+                position: absolute;
+                top: 0;
+                &.l {
+                    left: 10px;
+                }
+            }
+        }
+        & .invalid {
+            margin-left: 100px;
+            font-size: 20px;
         }
     }
 </style>
