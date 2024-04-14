@@ -84,6 +84,7 @@ function fRead(filename) {
 
 function updateView() {
     Ques.replaceChildren(typing.getQuesView());
+    Input.replaceChildren(typing.getInputView());
 }
 
 </script>
@@ -139,31 +140,64 @@ document.addEventListener("keydown",(e)=>{
     }
     
     #playArea {
-        & rt {
-            font-size: 20px;
-            color: gray;
-            & .s1 {
-                color: gray;
+        & #Ques {
+            & rt {
+                font-size: 20px;
+                color: rgb(255, 255, 255);
+                & .s1 {
+                    color: rgb(255, 255, 255);
+                }
+                & .s2 {
+                    color: rgb(255, 173, 173);
+                }
+                & .s3 {
+                    color: rgb(164, 164, 255);
+                }
+                & .s4 {
+                    color: rgb(255, 132, 132);
+                }
             }
-            & .s2 {
-                color: rgb(255, 173, 173);
-            }
-            & .s3 {
-                color: rgb(164, 164, 255);
+            & rb, & .noruby {
+                font-size: 50px;
+                color: rgb(255, 255, 255);
+                &.s1 {
+                    color: rgb(255, 255, 255);
+                }
+                &.s2 {
+                    color: rgb(255, 173, 173);
+                }
+                &.s3 {
+                    color: rgb(164, 164, 255);
+                }
+                &.s4 {
+                    color: rgb(255, 132, 132);
+                }
             }
         }
-        & rb, & .noruby {
-            font-size: 40px;
-            color: gray;
-            &.s1 {
-                color: gray;
-            }
-            &.s2 {
-                color: rgb(255, 173, 173);
-            }
+        & #Input span {
+            font-size: 50px;
+            color: rgb(255, 255, 255);
             &.s3 {
                 color: rgb(164, 164, 255);
             }
+            &.s4 {
+                color: rgb(255, 132, 132);
+            }
+        }
+    }
+    
+    #playArea {
+        position: relative;
+        height: 100%;
+        &>div#Ques {
+            position: absolute;
+            top: calc(50% - 50.5px - 70px);
+            left: 40px;
+        }
+        &>div#Input {
+            position: absolute;
+            top: calc(50% - 50.5px + 70px);
+            left: 40px;
         }
     }
 </style>
