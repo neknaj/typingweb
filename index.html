@@ -105,6 +105,7 @@ var status = "menu";
 window.onload = init;
 async function init() {
     updateMenu();
+    document.querySelector("#menu button").focus();
     typing = loadntq(typingurl);
     keyboard = JSON.parse(fRead("keyboard.json"));
     typingnextQues = new Typing(typing.lines[typing.line],keyboard).getQuesView();
@@ -171,7 +172,6 @@ function updateMenu() {
         }
     }
     menu.replaceChildren(menudiv);
-    document.querySelector("#menu button").focus();
 }
 
 
