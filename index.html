@@ -163,6 +163,7 @@ function updateMenu() {
         }
     }
     menu.replaceChildren(menudiv);
+    document.querySelector("#menu button").focus();
 }
 
 
@@ -236,6 +237,11 @@ setInterval(updateView,100);
 <script>
 
 document.addEventListener("keydown",(e)=>{
+    if (status=="play"&&e.key=="Escape") {
+        updateView();
+        status = "finish";
+        return
+    }
     console.log("keydown",e.key)
     if (status=="title") {
         if (e.key==" ") {
@@ -286,6 +292,7 @@ document.addEventListener("keydown",(e)=>{
                 }
             }
             else {
+                updateView();
                 status = "finish";
             }
         }
