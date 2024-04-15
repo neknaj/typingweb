@@ -252,7 +252,9 @@ document.addEventListener("keydown",(e)=>{
             typing.line = 0;
             status = "play";
             typingline = new Typing(typing.lines[typing.line],keyboard);
-            typingnextQues = new Typing(typing.lines[typing.line+1],keyboard).getQuesView();
+            if (typing.lines.length>1) {
+                typingnextQues = new Typing(typing.lines[typing.line+1],keyboard).getQuesView();
+            } else { typingnextQues = elm("span",{},[textelm("end")]); }
             typing.start = Date.now();
             TypeHistory.replaceChildren(elm("span",{},[]));
             makeChart();
@@ -286,6 +288,7 @@ document.addEventListener("keydown",(e)=>{
         if (endline) {
             typing.line++;
             TypeHistory.appendChild(typingline.getInputView());
+            console.log(typing.lines.length,typing.line+1)
             if (typing.lines.length>typing.line) {
                 typingline = new Typing(typing.lines[typing.line],keyboard);
                 QuesInput.scrollTo({left:0,behavior:"instant"});
@@ -372,7 +375,7 @@ document.addEventListener("keydown",(e)=>{
         }
         & #Ques {
             & rt {
-                font-size: 30px;
+                font-size: 25px;
                 color: rgb(255, 255, 255);
                 & .s1 {
                     color: rgb(255, 255, 255);
@@ -388,7 +391,7 @@ document.addEventListener("keydown",(e)=>{
                 }
             }
             & rb, & .noruby {
-                font-size: 70px;
+                font-size: 80px;
                 color: rgb(255, 255, 255);
                 &.s1 {
                     color: rgb(255, 255, 255);
@@ -405,7 +408,7 @@ document.addEventListener("keydown",(e)=>{
             }
         }
         & #Input>span>span {
-            font-size: 70px;
+            font-size: 80px;
             color: rgb(255, 255, 255);
             &.s3 {
                 color: rgb(164, 164, 255);
