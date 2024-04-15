@@ -19,8 +19,10 @@
                     <div class="resizer_content">
                         <div id="playArea" style="display: none;">
                             <div id="Title"></div>
-                            <div id="Ques"></div>
-                            <div id="Input"></div>
+                            <div id="QuesInput">
+                                <div id="Ques"></div>
+                                <div id="Input"></div>
+                            </div>
                             <div id="Next"></div>
                         </div>
                         <div id="menuArea">
@@ -50,7 +52,7 @@
                     </div>
                     <div class="resizer_splitter"></div>
                     <div class="resizer_content">
-                        <table style="width: 100%;height: 100%">
+                        <table style="width: 100%;height: 100%" id="Info">
                             <tr>
                                 <th>速さ</th>
                                 <td id="Speed">0</td>
@@ -183,7 +185,7 @@ function updateView() {
         menuArea.style.display = "none";
         Next.replaceChildren(typingnextQues);
         Ques.replaceChildren(elm("span",{},[textelm("スペースを押して開始")]));
-        Input.replaceChildren(elm("span",{},[]));
+        Input.replaceChildren(elm("span",{},[textelm("")]));
         Next.replaceChildren(elm("span",{},[textelm("エスケープを押してメニューへ")]));
     }
     else if (status=="play") {
@@ -195,6 +197,8 @@ function updateView() {
         Failed.innerText = typing.failed;
         Speed.innerText = ((typing.type-typing.failed)/((Date.now()-typing.start)/1000)).toString().slice(0,5);
         Accuracy.innerText = ((typing.type-typing.failed)/typing.type*100).toString().slice(0,5);
+        QuesInput.scrollTo({left:Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left-30,behavior: "smooth"});
+        Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))}px`
     }
     else if (status=="menu") {
         playArea.style.display = "none";
@@ -211,7 +215,6 @@ function updateView() {
             TypingGraph.setAttribute("width",rect.width);
             TypingGraph.setAttribute("height",rect.height);
             typingchart.update();
-            console.log("a")
         }
     }
 }
@@ -245,6 +248,7 @@ document.addEventListener("keydown",(e)=>{
     console.log("keydown",e.key)
     if (status=="title") {
         if (e.key==" ") {
+            QuesInput.scrollTo({left:0,behavior:"instant"});
             typing.line = 0;
             status = "play";
             typingline = new Typing(typing.lines[typing.line],keyboard);
@@ -284,6 +288,7 @@ document.addEventListener("keydown",(e)=>{
             TypeHistory.appendChild(typingline.getInputView());
             if (typing.lines.length>typing.line) {
                 typingline = new Typing(typing.lines[typing.line],keyboard);
+                QuesInput.scrollTo({left:0,behavior:"instant"});
                 if (typing.lines.length>typing.line+1) {
                     typingnextQues = new Typing(typing.lines[typing.line+1],keyboard).getQuesView();
                 }
@@ -360,6 +365,11 @@ document.addEventListener("keydown",(e)=>{
     
     #playArea {
         font-size: 40px;
+        & #QuesInput {
+            max-width: calc(100% - 80px);
+            overflow-x: hidden;
+            white-space: nowrap;
+        }
         & #Ques {
             & rt {
                 font-size: 30px;
@@ -416,17 +426,15 @@ document.addEventListener("keydown",(e)=>{
             left: 50%;
             transform: translateX(-50%);
         }
-        &>div#Ques {
+        &>div#QuesInput {
             position: absolute;
             top: calc(50% - 50.5px + 5% - 2% - 70px);
             left: 40px;
             width: max-content;
-        }
-        &>div#Input {
-            position: absolute;
-            top: calc(50% - 50.5px + 5% + 70px);
-            left: 40px;
-            width: max-content;
+            height: max-content;
+            &>div {
+                width: fit-content;
+            }
         }
         &>div#Next {
             position: absolute;
@@ -477,7 +485,7 @@ document.addEventListener("keydown",(e)=>{
         & #menu {
             height: 100%;
             display: block;
-            overflow-x: scroll;
+            overflow-x: auto;
         }
         & #menu button {
             position: relative;
@@ -497,6 +505,17 @@ document.addEventListener("keydown",(e)=>{
         & .invalid {
             margin-left: 100px;
             font-size: 20px;
+        }
+    }
+
+    #Info {
+        & tr>*:nth-child(1),& tr>*:nth-child(3) {
+            width: min-content;
+            white-space: nowrap;
+            padding: 0px 30px 0px 30px;
+        }
+        & tr>*:nth-child(2) {
+            width: 100%;
         }
     }
 </style>
