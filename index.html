@@ -15,7 +15,7 @@
     <body lang="jp">
         <div class="resizer_Hcontainer" id="mainarea" data-proportion="5:2">
             <div class="resizer_content">
-                <div class="resizer_Vcontainer" data-proportion="7:3">
+                <div class="resizer_Vcontainer" data-proportion="5:3">
                     <div class="resizer_content">
                         <div id="playArea" style="display: none;">
                             <div id="Title"></div>
@@ -33,7 +33,7 @@
                                 </div>
                                 <div class="resizer_splitter"></div>
                                 <div class="resizer_content">
-                                    <textarea id="menuUrls">menu.csv</textarea>
+                                    <textarea id="menuUrls"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -90,6 +90,11 @@
 <script>const ntqparser = module.exports.parse;</script>
 <script>
 
+if (localStorage.TypingWebMenu==null) {
+    localStorage.TypingWebMenu = `menu.csv`;
+}
+menuUrls.value = localStorage.TypingWebMenu;
+
 var typingurl;
 var typing;
 var typingline;
@@ -135,6 +140,7 @@ function loadntq(filename) {
 menuUrls.oninput = updateMenu;
 menuUrls.onchange = updateMenu;
 function updateMenu() {
+    localStorage.TypingWebMenu = menuUrls.value;
     const menudiv = elm("div",{},[]);
     const urls = menuUrls.value.replace(/\r\n/g,"\n").split("\n");
     console.log("updatemenu")
@@ -425,13 +431,13 @@ document.addEventListener("keydown",(e)=>{
         &>div#Title {
             font-size: 60px;
             position: absolute;
-            top: 50px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
         }
         &>div#QuesInput {
             position: absolute;
-            top: calc(50% - 50.5px + 5% - 2% - 70px);
+            top: calc(50% - 50.5px + 5% - 2% - 90px);
             left: 40px;
             width: max-content;
             height: max-content;
