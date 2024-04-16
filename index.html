@@ -45,7 +45,7 @@
                     </div>
                     <div class="resizer_splitter"></div>
                     <div class="resizer_content" id="GraphArea">
-                        <canvas id="TypingGraph" width="800" height="200"></canvas>
+                        <canvas id="TypingGraph" width="1600" height="400"></canvas>
                     </div>
                 </div>
             </div>
@@ -282,6 +282,7 @@ document.addEventListener("keydown",(e)=>{
     if (status=="title") {
         if (e.key==" ") {
             clearChart()
+            var QuesInputScrollMax = 0;
             QuesInput.scrollTo({left:0,behavior:"instant"});
             typing.line = 0;
             status = "play";
@@ -298,6 +299,8 @@ document.addEventListener("keydown",(e)=>{
         }
     }
     else if (status=="play") {
+        e.preventDefault();
+        if (e.key.length>1) {return}
         var [key,endline] = typingline.key(e.key);
         typing.end = new Date();
         typing.type++;
@@ -325,6 +328,7 @@ document.addEventListener("keydown",(e)=>{
             console.log(typing.lines.length,typing.line+1)
             if (typing.lines.length>typing.line) {
                 typingline = new Typing(typing.lines[typing.line],keyboard);
+                var QuesInputScrollMax = 0;
                 QuesInput.scrollTo({left:0,behavior:"instant"});
                 if (typing.lines.length>typing.line+1) {
                     typingnextQues = new Typing(typing.lines[typing.line+1],keyboard).getQuesView();
@@ -493,6 +497,7 @@ document.addEventListener("keydown",(e)=>{
     }
 
     #TypeHistory {
+        word-break: break-word;
         &>span {
             display: block;
         }

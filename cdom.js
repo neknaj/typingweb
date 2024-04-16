@@ -18,5 +18,5 @@ function elm(type,prop,children) {
     return elm;
 }
 function textelm(text) {
-    return document.createTextNode(text);
+    return document.createTextNode(text.replaceAll(" ","\u00a0"));
 }

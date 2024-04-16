@@ -118,7 +118,7 @@ class Typing {
             }
             else {
                 let stat = this.iscorrect[this.qklocIndex([i])];
-                span = elm("span",{class:`noruby s${stat}`},[textelm(x[0])]);
+                span = elm("span",{class:`noruby s${stat}`},[textelm(x[0].join(""))]);
             }
             queselm.appendChild(span)
         })
@@ -162,7 +162,7 @@ class Typing {
             else {
                 let stat = this.iscorrect[this.qklocIndex([i])];
                 if (stat==3||stat==4) {
-                    queselm.appendChild(elm("span",{class:`input s${stat}`},[textelm(x[0])]));
+                    queselm.appendChild(elm("span",{class:`input s${stat}`},[textelm(x[0].join(""))]));
                 }
             }
         })
