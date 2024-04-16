@@ -3,8 +3,11 @@
     <head>
         <title>Neknaj Typing Web</title>
         <meta charset="utf-8">
+        <meta property="og:url" content="https://neknaj.bem130.com/repos/typingweb/">
+        <meta property="og:site_name" content="Neknaj Typing Web" />
         <meta property="og:title" content="Neknaj Typing Web">
         <meta property="og:description" content="typing software for web">
+        <meta property="og:image" content="https://neknaj.bem130.com/repos/typingweb/thumbnail.png">
         <meta property="description" content="typing software for web">
         <link rel="stylesheet" href="layout.css">
         <script src="layout.js"></script>
@@ -46,7 +49,7 @@
             </div>
             <div class="resizer_splitter"></div>
             <div class="resizer_content">
-                <div class="resizer_Vcontainer" data-proportion="5:2">
+                <div class="resizer_Vcontainer" data-proportion="2:1">
                     <div class="resizer_content">
                         <div id="TypeHistory"></div>
                     </div>
@@ -78,6 +81,11 @@
                                 <td id="Failed">0</td>
                                 <td>type</td>
                             </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td><a id="ShareLink" data-linkbase="https://twitter.com/intent/post?text=" target="_blank" rel="noopener noreferrer">Share to X</a></td>
+                            </tr>
                         </table>
                     </div>
                 </div>
@@ -94,6 +102,8 @@ if (localStorage.TypingWebMenu==null) {
     localStorage.TypingWebMenu = `menu.csv`;
 }
 menuUrls.value = localStorage.TypingWebMenu;
+
+ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nhttps://neknaj.bem130.com/repos/typingweb/`);
 
 var typingurl;
 var typing;
@@ -118,6 +128,7 @@ function loadntq(filename) {
     const res = {
         title: "",
         start: null,
+        end: null,
         line: 0,
         type: 0,
         failed: 0,
@@ -186,6 +197,7 @@ var QuesInputScrollMax = 0;
 function updateView() {
     Title.innerText = typing.title;
     if (status=="title") {
+        QuesInput.scrollTo({left:0,behavior:"instant"});
         playArea.style.display = "block";
         menuArea.style.display = "none";
         Next.replaceChildren(typingnextQues);
@@ -200,15 +212,18 @@ function updateView() {
         Typed.innerText = typing.type;
         Failed.innerText = typing.failed;
         Accuracy.innerText = ((typing.type-typing.failed)/typing.type*100).toString().slice(0,5);
+        ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nーーーーーーーー\n速さ: ${Speed.innerText}  type/s\n精度: ${Accuracy.innerText}　　%\n時間: ${Time.innerText}　s\n打鍵: ${Typed.innerText}　　type\n誤打: ${Failed.innerText}　　type\n問題: 「${typing.title}」\n　　　${TypeHistory.innerText.slice(0,5)+"..."}\nーーーーーーーー\nhttps://neknaj.bem130.com/repos/typingweb/`);
         QuesInputScrollMax = Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left-50;
         //QuesInput.scrollTo({left:QuesInputScrollMax});
         Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))}px`
     }
     else if (status=="menu") {
+        QuesInput.scrollTo({left:0,behavior:"instant"});
         playArea.style.display = "none";
         menuArea.style.display = "block";
     }
     else if (status=="finish") {
+        QuesInput.scrollTo({left:0,behavior:"instant"});
         Ques.replaceChildren(elm("span",{},[textelm("お疲れ様でした")]));
         Input.replaceChildren(elm("span",{},[textelm("スペースを押してタイトルへ")]));
         Next.replaceChildren(elm("span",{},[]));
@@ -218,7 +233,7 @@ function updateView() {
 function everyFrameUpdate() {
     if (status=="play") {
         Time.innerText = (Date.now()-typing.start)/1000;
-        Speed.innerText = ((typing.type-typing.failed)/((Date.now()-typing.start)/1000)).toString().slice(0,5);
+        Speed.innerText = ((typing.type-typing.failed)/((Date.now()-typing.start)/1000)).toString().slice(0,7);
         if (QuesInput.scrollLeft<QuesInputScrollMax) {
             QuesInput.scrollBy({left:(QuesInputScrollMax-QuesInput.scrollLeft)/30,behavior:"instant"})
         }
@@ -256,6 +271,7 @@ everyFrameUpdate();
 document.addEventListener("keydown",(e)=>{
     if (status=="play"&&e.key=="Escape") {
         updateView();
+        typing.end = new Date();
         status = "finish";
         return
     }
@@ -314,8 +330,8 @@ document.addEventListener("keydown",(e)=>{
                 }
             }
             else {
-                QuesInput.scrollTo({left:0,behavior:"instant"});
                 updateView();
+                typing.end = new Date();
                 status = "finish";
             }
         }
