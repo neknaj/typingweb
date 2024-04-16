@@ -33,14 +33,14 @@
                                 </div>
                                 <div class="resizer_splitter"></div>
                                 <div class="resizer_content">
-                                    <textarea id="menuUrls"></textarea>
+                                    <label><textarea id="menuUrls"></textarea>files</label>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <div class="resizer_splitter"></div>
                     <div class="resizer_content" id="GraphArea">
-                        <canvas id="TypingGraph"></canvas>
+                        <canvas id="TypingGraph" width="400" height="200"></canvas>
                     </div>
                 </div>
             </div>
@@ -102,6 +102,7 @@ var typingnextQues;
 var typingchart;
 var status = "menu";
 
+makeChart();
 window.onload = init;
 async function init() {
     updateMenu();
@@ -110,7 +111,6 @@ async function init() {
     keyboard = JSON.parse(fRead("keyboard.json"));
     typingnextQues = new Typing(typing.lines[typing.line],keyboard).getQuesView();
     updateView();
-    makeChart();
 };
 
 function loadntq(filename) {
@@ -130,9 +130,6 @@ function loadntq(filename) {
             continue;
         }
         lines.push(ntqparser(i));
-    }
-    for (const i of lines) {
-        console.table(i.map((i)=>{return i.map((x)=>{if(x instanceof Array){return x.join(", ")};return x})}))
     }
     res.lines = lines;
     return res;
@@ -215,29 +212,26 @@ function updateView() {
         Input.replaceChildren(elm("span",{},[textelm("スペースを押してタイトルへ")]));
         Next.replaceChildren(elm("span",{},[]));
     }
-    { // chart size
-        let rect = GraphArea.getBoundingClientRect();
-        if (TypingGraph.width!=rect.width||TypingGraph.height!=rect.height) {
-            TypingGraph.setAttribute("width",rect.width);
-            TypingGraph.setAttribute("height",rect.height);
-            typingchart.update();
-        }
-    }
 }
 
 function makeChart() {
     typingchart = new Chart(TypingGraph,{type:"line",data:{labels:[],datasets:[
-        {
-            label: "total speed",
-            data: [],
-            borderColor: "rgba(255,100,255,1)",
-        },
-        {
-            label: "instantaneous speed",
-            data: [],
-            borderColor: "rgba(100,255,255,1)",
-        }
-    ]}});
+            {
+                label: "total speed",
+                data: [],
+                borderColor: "rgba(255,100,255,1)",
+            },
+            {
+                label: "instantaneous speed",
+                data: [],
+                borderColor: "rgba(100,255,255,1)",
+            }
+        ]},
+     });
+}
+function clearChart() {
+    typingchart.data.labels = [];
+    typingchart.data.datasets.forEach((x)=>{x.data=[];});
 }
 
 setInterval(updateView,100);
@@ -254,6 +248,7 @@ document.addEventListener("keydown",(e)=>{
     console.log("keydown",e.key)
     if (status=="title") {
         if (e.key==" ") {
+            clearChart()
             QuesInput.scrollTo({left:0,behavior:"instant"});
             typing.line = 0;
             status = "play";
@@ -263,7 +258,6 @@ document.addEventListener("keydown",(e)=>{
             } else { typingnextQues = elm("span",{},[textelm("end")]); }
             typing.start = Date.now();
             TypeHistory.replaceChildren(elm("span",{},[]));
-            makeChart();
             updateView();
         }
         else if (e.key=="Escape") {
@@ -341,6 +335,7 @@ document.addEventListener("keydown",(e)=>{
         font-weight: inherit;
         height: 45px;
         margin: 10px;
+        text-wrap: nowrap;
     }
     body {
         background-color: rgb(0, 2, 10);
@@ -434,6 +429,7 @@ document.addEventListener("keydown",(e)=>{
             top: 20px;
             left: 50%;
             transform: translateX(-50%);
+            text-wrap: nowrap;
         }
         &>div#QuesInput {
             position: absolute;
@@ -505,12 +501,19 @@ document.addEventListener("keydown",(e)=>{
             width: calc(100% - 130px);
             font-size: 30px;
             height: 50px;
+            background: #2c2c2c;
+            border: 1px solid gray;
+            border-radius: 5px;
+            text-wrap: nowrap;
             & span {
                 position: absolute;
                 top: 0;
                 &.l {
                     left: 10px;
                 }
+            }
+            &:hover {
+                background: #4c4c4c;
             }
         }
         & .invalid {
