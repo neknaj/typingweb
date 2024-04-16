@@ -282,7 +282,7 @@ document.addEventListener("keydown",(e)=>{
     if (status=="title") {
         if (e.key==" ") {
             clearChart()
-            var QuesInputScrollMax = 0;
+            QuesInputScrollMax = 0;
             QuesInput.scrollTo({left:0,behavior:"instant"});
             typing.line = 0;
             status = "play";
@@ -328,7 +328,7 @@ document.addEventListener("keydown",(e)=>{
             console.log(typing.lines.length,typing.line+1)
             if (typing.lines.length>typing.line) {
                 typingline = new Typing(typing.lines[typing.line],keyboard);
-                var QuesInputScrollMax = 0;
+                QuesInputScrollMax = 0;
                 QuesInput.scrollTo({left:0,behavior:"instant"});
                 if (typing.lines.length>typing.line+1) {
                     typingnextQues = new Typing(typing.lines[typing.line+1],keyboard).getQuesView();
