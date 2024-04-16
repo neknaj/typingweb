@@ -45,7 +45,7 @@
                     </div>
                     <div class="resizer_splitter"></div>
                     <div class="resizer_content" id="GraphArea">
-                        <canvas id="TypingGraph" width="400" height="200"></canvas>
+                        <canvas id="TypingGraph" width="800" height="200"></canvas>
                     </div>
                 </div>
             </div>
@@ -214,7 +214,7 @@ function updateView() {
         Typed.innerText = typing.type;
         Failed.innerText = typing.failed;
         Accuracy.innerText = ((typing.type-typing.failed)/typing.type*100).toString().slice(0,5);
-        ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nーーーーーーーー\n速さ: ${Speed.innerText}  type/s\n精度: ${Accuracy.innerText}　　%\n時間: ${Time.innerText}　s\n打鍵: ${Typed.innerText}　　type\n誤打: ${Failed.innerText}　　type\n問題: 「${typing.title}」\n　　　${TypeHistory.innerText.slice(0,5)+"..."}\nーーーーーーーー\nhttps://neknaj.bem130.com/repos/typingweb/`);
+        ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nーーーーーーーー\n速さ: ${Speed.innerText}  type/s\n精度: ${Accuracy.innerText}　　%\n時間: ${Time.innerText}　s\n打鍵: ${Typed.innerText}　　type\n誤打: ${Failed.innerText}　　type\n問題: 「${typing.title}」\n　　　${TypeHistory.innerText.slice(0,5)+"..."}\n${typing.end.toLocaleString("ja-JP")}\nーーーーーーーー\nhttps://neknaj.bem130.com/repos/typingweb/`);
         QuesInputScrollMax = Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left-50;
         //QuesInput.scrollTo({left:QuesInputScrollMax});
         Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))}px`
@@ -272,8 +272,9 @@ everyFrameUpdate();
 
 document.addEventListener("keydown",(e)=>{
     if (status=="play"&&e.key=="Escape") {
-        updateView();
+        TypeHistory.appendChild(typingline.getInputView());
         typing.end = new Date();
+        updateView();
         status = "finish";
         return
     }
@@ -298,6 +299,7 @@ document.addEventListener("keydown",(e)=>{
     }
     else if (status=="play") {
         var [key,endline] = typingline.key(e.key);
+        typing.end = new Date();
         typing.type++;
         if (key==false) {
             typing.failed++;
@@ -333,7 +335,6 @@ document.addEventListener("keydown",(e)=>{
             }
             else {
                 updateView();
-                typing.end = new Date();
                 status = "finish";
             }
         }
