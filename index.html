@@ -147,7 +147,7 @@ function updateMenu() {
         menudiv.appendChild(elm("div",{},[textelm(url)]));
         if (url=="") {continue;}
         const data = fRead(url);
-        var base;
+        let base;
         console.log(data.replace(/\r\n/g,"\n").split("\n")[0])
         if (data.replace(/\r\n/g,"\n").split("\n")[0]!="ntqmenu") {console.error("不正なファイル",url);menudiv.appendChild(elm("span",{class:"invalid"},[textelm("不正なファイル")]));continue;}
         for (let q of data.replace(/\r\n/g,"\n").split("\n").slice(1)) {
@@ -160,8 +160,9 @@ function updateMenu() {
                 elm("span",{class:"l"},[textelm(c[0])]),
                 elm("span",{class:"r"},[textelm(c[1])]),
             ])
+            const fname = base+c[0];
             btn.onclick = ()=>{
-                typingurl = base+c[0];
+                typingurl = fname;
                 status = "title";
                 init();
             }
@@ -181,6 +182,7 @@ function fRead(filename) {
     }else {throw "err " + filename;}
 };
 
+var QuesInputScrollMax = 0;
 function updateView() {
     Title.innerText = typing.title;
     if (status=="title") {
@@ -195,12 +197,11 @@ function updateView() {
         Ques.replaceChildren(typingline.getQuesView());
         Input.replaceChildren(typingline.getInputView());
         Next.replaceChildren(typingnextQues);
-        Time.innerText = (Date.now()-typing.start)/1000;
         Typed.innerText = typing.type;
         Failed.innerText = typing.failed;
-        Speed.innerText = ((typing.type-typing.failed)/((Date.now()-typing.start)/1000)).toString().slice(0,5);
         Accuracy.innerText = ((typing.type-typing.failed)/typing.type*100).toString().slice(0,5);
-        QuesInput.scrollTo({left:Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left-50,behavior: "instant"});
+        QuesInputScrollMax = Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left-50;
+        //QuesInput.scrollTo({left:QuesInputScrollMax});
         Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))}px`
     }
     else if (status=="menu") {
@@ -212,6 +213,18 @@ function updateView() {
         Input.replaceChildren(elm("span",{},[textelm("スペースを押してタイトルへ")]));
         Next.replaceChildren(elm("span",{},[]));
     }
+}
+
+function everyFrameUpdate() {
+    if (status=="play") {
+        Time.innerText = (Date.now()-typing.start)/1000;
+        Speed.innerText = ((typing.type-typing.failed)/((Date.now()-typing.start)/1000)).toString().slice(0,5);
+        if (QuesInput.scrollLeft<QuesInputScrollMax) {
+            QuesInput.scrollBy({left:(QuesInputScrollMax-QuesInput.scrollLeft)/30,behavior:"instant"})
+        }
+        Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))}px`
+    }
+    requestAnimationFrame(everyFrameUpdate);
 }
 
 function makeChart() {
@@ -227,7 +240,7 @@ function makeChart() {
                 borderColor: "rgba(100,255,255,1)",
             }
         ]},
-     });
+    });
 }
 function clearChart() {
     typingchart.data.labels = [];
@@ -235,6 +248,7 @@ function clearChart() {
 }
 
 setInterval(updateView,100);
+everyFrameUpdate();
 
 </script>
 <script>
@@ -300,6 +314,7 @@ document.addEventListener("keydown",(e)=>{
                 }
             }
             else {
+                QuesInput.scrollTo({left:0,behavior:"instant"});
                 updateView();
                 status = "finish";
             }
@@ -375,6 +390,7 @@ document.addEventListener("keydown",(e)=>{
             white-space: nowrap;
         }
         & #Ques {
+            padding-right: calc(100% - 100px);
             & rt {
                 font-size: 25px;
                 color: rgb(255, 255, 255);
