@@ -45,7 +45,7 @@
                         <div id="resultArea">
                             <h1>Result</h1>
                             <p>お疲れ様でした</p>
-                            <p id="Score"></p>
+                            <p id="ScoreArea"><span id="Score"></span>pt</p>
                             <p>スペースを押してタイトルへ</p>
                         </div>
                     </div>
@@ -166,6 +166,7 @@ function updateMenu() {
         menudiv.appendChild(elm("div",{},[textelm(url)]));
         if (url=="") {continue;}
         const data = fRead(url);
+        if (data==false) {continue;}
         let base;
         console.log(data.replace(/\r\n/g,"\n").split("\n")[0])
         if (data.replace(/\r\n/g,"\n").split("\n")[0]!="ntqmenu") {console.error("不正なファイル",url);menudiv.appendChild(elm("span",{class:"invalid"},[textelm("不正なファイル")]));continue;}
@@ -198,7 +199,7 @@ function fRead(filename) {
     hr.send(null);
     if (hr.status == 200 || hr.status == 304) {
         return hr.responseText.replace(/\r\n/g, "\n");
-    }else {throw "err " + filename;}
+    }else {console.error("err " + filename);return false;}
 };
 
 var QuesInputScrollMax = 0;
@@ -221,7 +222,7 @@ function updateView() {
         Typed.innerText = typing.type;
         Failed.innerText = typing.failed;
         Accuracy.innerText = ((typing.type-typing.failed)/typing.type*100).toString().slice(0,5);
-        ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nーーーーーーーー\n速さ: ${Speed.innerText}  type/s\n精度: ${Accuracy.innerText}　　%\n時間: ${Time.innerText}　s\n打鍵: ${Typed.innerText}　　type\n誤打: ${Failed.innerText}　　type\n問題: 「${typing.title}」\n　　　${TypeHistory.innerText.slice(0,5)+"..."}\n${typing.end.toLocaleString("ja-JP")}\nーーーーーーーー\nhttps://neknaj.bem130.com/repos/typingweb/`);
+        ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nーーーーーーーー\nスコア: ${getScore()}　pt\n速さ: ${Speed.innerText}  type/s\n精度: ${Accuracy.innerText}　　%\n時間: ${Time.innerText}　s\n打鍵: ${Typed.innerText}　　type\n誤打: ${Failed.innerText}　　type\n問題: 「${typing.title}」\n　　　${TypeHistory.innerText.slice(0,5)+"..."}\n${typing.end.toLocaleString("ja-JP")}\nーーーーーーーー\nhttps://neknaj.bem130.com/repos/typingweb/`);
         QuesInputScrollMax = Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left-50;
         //QuesInput.scrollTo({left:QuesInputScrollMax});
         Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))}px`
@@ -236,7 +237,7 @@ function updateView() {
         playArea.style.display = "none";
         menuArea.style.display = "none";
         resultArea.style.display = "block";
-        Score.innerText = `${getScore()} (暫定版)`;
+        Score.innerText = getScore();
     }
 }
 
@@ -298,11 +299,12 @@ function getScore() {
     let speed = ((typing.type-typing.failed)/((typing.end-typing.start)/1000));
     let accuracy = (typing.type-typing.failed)/typing.type;
     console.log(quartile,speed,accuracy);
-    console.log((speed*30+quartile[1]*10+quartile[3]*50+quartile[4]*100),(1.7-accuracy),((1.7-accuracy)*100/70))
-    return (speed*100+quartile[1]*10+quartile[3]*50+quartile[4]*100+typing.type*10)/((1.7-accuracy)*100/70);
+    console.info(speed*100,quartile[1]*10,quartile[3]*50,quartile[4]*100,typing.type,`精度ペナルティ ${1/((1.7-accuracy)*100/70)}`)
+    let score = (speed*100+quartile[1]*10+quartile[3]*50+quartile[4]*100+typing.type)/((1.7-accuracy)*100/70);
+    return Math.floor(isNaN(score)?`算出不可`:score);
 }
 
-setInterval(updateView,100);
+setInterval(updateView,1000);
 everyFrameUpdate();
 
 </script>
@@ -314,6 +316,7 @@ document.addEventListener("keydown",(e)=>{
         typing.end = new Date();
         updateView();
         status = "finish";
+        updateView();
         return
     }
     console.log("keydown",e.key)
@@ -608,6 +611,13 @@ document.addEventListener("keydown",(e)=>{
         }
         & tr>*:nth-child(2) {
             width: 100%;
+        }
+    }
+    #ScoreArea {
+        text-align: center;
+        & #Score {
+            font-size: 100px;
+            margin: 10px;
         }
     }
 </style>
