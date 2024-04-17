@@ -42,6 +42,12 @@
                                 </div>
                             </div>
                         </div>
+                        <div id="resultArea">
+                            <h1>Result</h1>
+                            <p>お疲れ様でした</p>
+                            <p id="Score"></p>
+                            <p>スペースを押してタイトルへ</p>
+                        </div>
                     </div>
                     <div class="resizer_splitter"></div>
                     <div class="resizer_content" id="GraphArea">
@@ -202,6 +208,7 @@ function updateView() {
         QuesInput.scrollTo({left:0,behavior:"instant"});
         playArea.style.display = "block";
         menuArea.style.display = "none";
+        resultArea.style.display = "none";
         Next.replaceChildren(typingnextQues);
         Ques.replaceChildren(elm("span",{},[textelm("スペースを押して開始")]));
         Input.replaceChildren(elm("span",{},[textelm("")]));
@@ -223,12 +230,13 @@ function updateView() {
         QuesInput.scrollTo({left:0,behavior:"instant"});
         playArea.style.display = "none";
         menuArea.style.display = "block";
+        resultArea.style.display = "none";
     }
     else if (status=="finish") {
-        QuesInput.scrollTo({left:0,behavior:"instant"});
-        Ques.replaceChildren(elm("span",{},[textelm("お疲れ様でした")]));
-        Input.replaceChildren(elm("span",{},[textelm("スペースを押してタイトルへ")]));
-        Next.replaceChildren(elm("span",{},[]));
+        playArea.style.display = "none";
+        menuArea.style.display = "none";
+        resultArea.style.display = "block";
+        Score.innerText = `${getScore()} (暫定版)`;
     }
 }
 
@@ -262,6 +270,36 @@ function makeChart() {
 function clearChart() {
     typingchart.data.labels = [];
     typingchart.data.datasets.forEach((x)=>{x.data=[];});
+}
+
+function getQuartile(arr) {
+    let sorted = arr.map((x)=>{return x;}).sort((a,b)=>{return a-b;}); // sort array
+    let median = function(x) {
+        if(x.length%2==0){
+            return (x[x.length/2-1]+x[x.length/2])/2;
+        }else{
+            return x[(x.length-1)/2]
+        }
+    }
+    let quartile = function(x) { // require sorted array
+        let ret = Array(5);
+        ret[0] = x[0];
+        ret[4] = x[x.length-1];
+        ret[2] = median(x);
+        ret[1] = median( x.filter((x)=>{return x<ret[2]}) )
+        ret[3] = median( x.filter((x)=>{return x>ret[2]}) )
+        return ret;
+    }
+    return quartile(sorted);
+}
+function getScore() {
+    let data = typingchart.data.datasets[1].data.slice(4);
+    let quartile = getQuartile(data);
+    let speed = ((typing.type-typing.failed)/((typing.end-typing.start)/1000));
+    let accuracy = (typing.type-typing.failed)/typing.type;
+    console.log(quartile,speed,accuracy);
+    console.log((speed*30+quartile[1]*10+quartile[3]*50+quartile[4]*100),(1.7-accuracy),((1.7-accuracy)*100/70))
+    return (speed*100+quartile[1]*10+quartile[3]*50+quartile[4]*100+typing.type*10)/((1.7-accuracy)*100/70);
 }
 
 setInterval(updateView,100);
