@@ -225,7 +225,7 @@ function updateView() {
         ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nーーーーーーーー\nスコア: ${getScore()}　pt\n速さ: ${Speed.innerText}  type/s\n精度: ${Accuracy.innerText}　　%\n時間: ${Time.innerText}　s\n打鍵: ${Typed.innerText}　　type\n誤打: ${Failed.innerText}　　type\n問題: 「${typing.title}」\n　　　${TypeHistory.innerText.slice(0,5)+"..."}\n${typing.end.toLocaleString("ja-JP")}\nーーーーーーーー\nhttps://neknaj.bem130.com/repos/typingweb/`);
         QuesInputScrollMax = Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left-50;
         //QuesInput.scrollTo({left:QuesInputScrollMax});
-        Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))}px`
+        //Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))}px`
     }
     else if (status=="menu") {
         QuesInput.scrollTo({left:0,behavior:"instant"});
@@ -268,6 +268,10 @@ function makeChart() {
         ]},
     });
 }
+function shiftChart() {
+    typingchart.data.labels.shift();
+    typingchart.data.datasets.forEach((x)=>{x.data.shift();});
+}
 function clearChart() {
     typingchart.data.labels = [];
     typingchart.data.datasets.forEach((x)=>{x.data=[];});
@@ -299,8 +303,8 @@ function getScore() {
     let speed = ((typing.type-typing.failed)/((typing.end-typing.start)/1000));
     let accuracy = (typing.type-typing.failed)/typing.type;
     console.log(quartile,speed,accuracy);
-    console.info(speed*100,quartile[1]*10,quartile[3]*50,quartile[4]*100,typing.type,`精度ペナルティ ${1/((1.7-accuracy)*100/70)}`)
-    let score = (speed*100+quartile[1]*10+quartile[3]*50+quartile[4]*100+typing.type)/((1.7-accuracy)*100/70);
+    console.info(speed*100,quartile[1]*10,quartile[3]*50,quartile[4]*50,typing.type*0.1,`精度ペナルティ ${accuracy}`)
+    let score = (speed*100+quartile[1]*10+quartile[3]*50+quartile[4]*50+typing.type*0.1)*accuracy;
     return Math.floor(isNaN(score)?`算出不可`:score);
 }
 
@@ -359,6 +363,9 @@ document.addEventListener("keydown",(e)=>{
             }
             else {
                 typingchart.data.datasets[1].data.push((typing.type-typing.failed)/((Date.now()-typing.start)/1000));
+            }
+            if (typingchart.data.labels.length>500) {
+                shiftChart();
             }
             typingchart.update();
         }
@@ -456,7 +463,7 @@ document.addEventListener("keydown",(e)=>{
         & #Ques {
             padding-right: calc(100% - 100px);
             & rt {
-                font-size: 25px;
+                font-size: 35px;
                 color: rgb(255, 255, 255);
                 & .s1 {
                     color: rgb(255, 255, 255);
