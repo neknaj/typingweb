@@ -246,9 +246,9 @@ function everyFrameUpdate() {
         Time.innerText = (Date.now()-typing.start)/1000;
         Speed.innerText = ((typing.type-typing.failed)/((Date.now()-typing.start)/1000)).toString().slice(0,7);
         if (QuesInput.scrollLeft<QuesInputScrollMax) {
-            QuesInput.scrollBy({left:(QuesInputScrollMax-QuesInput.scrollLeft)/30,behavior:"instant"})
+            QuesInput.scrollBy({left:(QuesInputScrollMax-QuesInput.scrollLeft)/20,behavior:"instant"})
         }
-        Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))}px`
+        Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))-Math.max(Input.querySelector(".s0")?.getBoundingClientRect().width,Input.querySelector(".s2")?.getBoundingClientRect().width)}px`
     }
     requestAnimationFrame(everyFrameUpdate);
 }
@@ -498,6 +498,9 @@ document.addEventListener("keydown",(e)=>{
         & #Input>span>span {
             font-size: 80px;
             color: rgb(255, 255, 255);
+            &.s2 {
+                color: rgb(255, 173, 173);
+            }
             &.s3 {
                 color: rgb(164, 164, 255);
             }

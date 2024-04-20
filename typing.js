@@ -174,7 +174,7 @@ class Typing {
             }
         })
         queselm.appendChild(elm("span",{class:`input s${0}`},[textelm(this.pending.join(""))]));
-        queselm.appendChild(elm("span",{class:`input s${4}`},[textelm(this.beforfailure)]));
+        queselm.appendChild(elm("span",{class:`input s${2}`},[textelm(this.beforfailure)]));
         return queselm;
     }
 }
