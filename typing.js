@@ -65,11 +65,18 @@ class Typing {
                     confirm = exp.length==this.pending.length+1;
                     this.pending.push(name);
                     if (confirm) { // next
+                        console.log("confirm")
+                        console.log(this.pending)
+                        console.log(this.expect,x[0],x[0].length)
                         if (this.iscorrect[this.cursor]==1) {
-                            this.iscorrect[this.cursor] = 3;
+                            for (let i=0;i<x[0].length;i++) {
+                                this.iscorrect[this.cursor+i] = 3;
+                            }
                         }
                         if (this.iscorrect[this.cursor]==2) {
-                            this.iscorrect[this.cursor] = 4;
+                            for (let i=0;i<x[0].length;i++) {
+                                this.iscorrect[this.cursor+i] = 4;
+                            }
                         }
                         this.cursor+=x[0].length;
                         this.pending = [];
