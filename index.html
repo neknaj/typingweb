@@ -316,7 +316,7 @@ everyFrameUpdate();
 
 document.addEventListener("keydown",(e)=>{
     if (status=="play"&&e.key=="Escape") {
-        TypeHistory.appendChild(typingline.getInputView());
+        TypeHistory.appendChild(typingline.getQuesView());
         typing.end = new Date();
         updateView();
         status = "finish";
@@ -329,6 +329,7 @@ document.addEventListener("keydown",(e)=>{
             clearChart()
             QuesInputScrollMax = 0;
             QuesInput.scrollTo({left:0,behavior:"instant"});
+            Input.style.paddingLeft;
             typing.line = 0;
             status = "play";
             typingline = new Typing(typing.lines[typing.line],keyboard);
@@ -372,12 +373,13 @@ document.addEventListener("keydown",(e)=>{
         console.log(key,endline);
         if (endline) {
             typing.line++;
-            TypeHistory.appendChild(typingline.getInputView());
+            TypeHistory.appendChild(typingline.getQuesView());
             console.log(typing.lines.length,typing.line+1)
             if (typing.lines.length>typing.line) {
                 typingline = new Typing(typing.lines[typing.line],keyboard);
                 QuesInputScrollMax = 0;
                 QuesInput.scrollTo({left:0,behavior:"instant"});
+                Input.style.paddingLeft;
                 if (typing.lines.length>typing.line+1) {
                     typingnextQues = new Typing(typing.lines[typing.line+1],keyboard).getQuesView();
                 }
@@ -548,13 +550,37 @@ document.addEventListener("keydown",(e)=>{
     }
 
     #TypeHistory {
+        max-height: 100%;
+        overflow-y: auto;
         word-break: break-word;
         &>span {
             display: block;
         }
-        span {
-            font-size: 35px;
-            color: rgb(255, 255, 255);
+        & rt {
+            font-size: 10px;
+            color: rgb(51, 51, 51);
+            & .s1 {
+                color: rgb(255, 255, 255);
+            }
+            & .s2 {
+                color: rgb(255, 173, 173);
+            }
+            & .s3 {
+                color: rgb(164, 164, 255);
+            }
+            & .s4 {
+                color: rgb(255, 132, 132);
+            }
+        }
+        & rb, & .noruby {
+            font-size: 20px;
+            color: rgb(51, 51, 51);
+            &.s1 {
+                color: rgb(255, 255, 255);
+            }
+            &.s2 {
+                color: rgb(255, 173, 173);
+            }
             &.s3 {
                 color: rgb(164, 164, 255);
             }
