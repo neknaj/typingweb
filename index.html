@@ -175,6 +175,7 @@ function updateMenu() {
                 base = q.slice(6);
                 continue;
             }
+            if (q.length==0) {continue}
             const c = q.split(",")
             const btn = elm("button",{},[
                 elm("span",{class:"l"},[textelm(c[0])]),
