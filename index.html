@@ -324,6 +324,14 @@ document.addEventListener("keydown",(e)=>{
         updateView();
         return
     }
+    if (e.key=="F1") {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+        else {
+            document.body.requestFullscreen();
+        }
+    }
     console.log("keydown",e.key)
     if (status=="title") {
         if (e.key==" ") {
