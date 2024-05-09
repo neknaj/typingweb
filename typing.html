@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Neknaj Typing Web</title>
+        <meta charset="utf-8">
+        <meta property="og:url" content="https://neknaj.bem130.com/typingweb/index">
+        <meta property="og:site_name" content="Neknaj Typing Web" />
+        <meta property="og:title" content="Neknaj Typing Web">
+        <meta property="og:description" content="typing software in web browser">
+        <meta property="og:image" content="https://neknaj.bem130.com/typingweb/thumbnail.png">
+        <meta property="description" content="typing software in web browser">
+        <meta name="twitter:card" content="summary"></meta>
+        <meta name="twitter:creator" content="@bem130"></meta>
+        <link rel="stylesheet" href="layout.css">
+        <script src="layout.js"></script>
+        <script src="typing.js"></script>
+        <script src="cdom.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"></script>
+        <script src="defaultmenu.js"></script>
+    </head>
+    <body lang="jp">
+        <div class="resizer_Hcontainer" id="mainarea" data-proportion="5:2">
+            <div class="resizer_content">
+                <div class="resizer_Vcontainer" data-proportion="5:3">
+                    <div class="resizer_content">
+                        <div id="playArea" style="display: none;">
+                            <div id="Title"></div>
+                            <div id="QuesInput">
+                                <div id="Ques"></div>
+                                <div id="Input"></div>
+                            </div>
+                            <div id="Next"></div>
+                        </div>
+                        <div id="menuArea">
+                            <h1 class="apptitle">Neknaj Typing Web</h1>
+                            <div class="resizer_Vcontainer" data-proportion="7:1">
+                                <div class="resizer_content">
+                                    <div id="menu"></div>
+                                </div>
+                                <div class="resizer_splitter"></div>
+                                <div class="resizer_content">
+                                    <label><textarea id="menuUrls"></textarea>files</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="resultArea">
+                            <h1>Result</h1>
+                            <p>お疲れ様でした</p>
+                            <p id="ScoreArea"><span id="Score"></span>pt</p>
+                            <p>スペースを押してタイトルへ</p>
+                        </div>
+                    </div>
+                    <div class="resizer_splitter"></div>
+                    <div class="resizer_content" id="GraphArea">
+                        <canvas id="TypingGraph" width="1600" height="400"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="resizer_splitter"></div>
+            <div class="resizer_content">
+                <div class="resizer_Vcontainer" data-proportion="2:1">
+                    <div class="resizer_content">
+                        <div id="TypeHistory"></div>
+                    </div>
+                    <div class="resizer_splitter"></div>
+                    <div class="resizer_content">
+                        <table style="width: 100%;height: 100%" id="Info">
+                            <tr>
+                                <th>速さ</th>
+                                <td id="Speed">0</td>
+                                <td>type/s</td>
+                            </tr>
+                            <tr>
+                                <th>精度</th>
+                                <td id="Accuracy">0</td>
+                                <td>%</td>
+                            </tr>
+                            <tr>
+                                <th>時間</th>
+                                <td id="Time">0</td>
+                                <td>s</td>
+                            </tr>
+                            <tr>
+                                <th>打鍵</th>
+                                <td id="Typed">0</td>
+                                <td>type</td>
+                            </tr>
+                            <tr>
+                                <th>誤打</th>
+                                <td id="Failed">0</td>
+                                <td>type</td>
+                            </tr>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td><a id="ShareLink" data-linkbase="https://twitter.com/intent/post?text=" target="_blank" rel="noopener noreferrer">Share to X</a></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+<script>module={}</script>
+<script src="./ntq.js"></script>
+<script>const ntqparser = module.exports.parse;</script>
+<script>
+
+if (localStorage.TypingWebMenu==null) {
+    localStorage.TypingWebMenu = TypingDefaultMenu;
+}
+menuUrls.value = localStorage.TypingWebMenu;
+
+ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nhttps://neknaj.bem130.com/typingweb/index`);
+
+var typingurl;
+var typing;
+var typingline;
+var typingnextQues;
+var typingchart;
+var status = "menu";
+
+makeChart();
+window.onload = init;
+async function init() {
+    updateMenu();
+    document.querySelector("#menu button").focus();
+    typing = loadntq(typingurl);
+    keyboard = JSON.parse(fRead("keyboard.json"));
+    typingnextQues = new Typing(typing.lines[typing.line],keyboard).getQuesView();
+    updateView();
+};
+
+function loadntq(filename) {
+    const _data = fRead(filename).replace(/\r\n/g,"\n").split("\n");
+    const res = {
+        title: "",
+        start: null,
+        end: null,
+        line: 0,
+        type: 0,
+        failed: 0,
+    }
+    const lines = [];
+    for (const i of _data) {
+        console.log(i)
+        if (i[0]=="#") {
+            if (i.startsWith("#title ")) {res.title = i.slice(7)}
+            continue;
+        }
+        lines.push(ntqparser(i));
+    }
+    res.lines = lines;
+    return res;
+}
+
+menuUrls.oninput = updateMenu;
+menuUrls.onchange = updateMenu;
+function updateMenu() {
+    localStorage.TypingWebMenu = menuUrls.value;
+    const menudiv = elm("div",{},[]);
+    const urls = menuUrls.value.replace(/\r\n/g,"\n").split("\n");
+    console.log("updatemenu")
+    console.log(urls)
+    for (let url of urls) {
+        menudiv.appendChild(elm("div",{},[textelm(url)]));
+        if (url=="") {continue;}
+        let data;
+        try {
+            data = fRead(url);
+        }
+        catch { continue; }
+        if (data==false) {continue;}
+        let base;
+        console.log(data.replace(/\r\n/g,"\n").split("\n")[0])
+        if (data.replace(/\r\n/g,"\n").split("\n")[0]!="ntqmenu") {console.error("不正なファイル",url);menudiv.appendChild(elm("span",{class:"invalid"},[textelm("不正なファイル")]));continue;}
+        for (let q of data.replace(/\r\n/g,"\n").split("\n").slice(1)) {
+            if (q.startsWith("#base ")) {
+                base = q.slice(6);
+                continue;
+            }
+            if (q.length==0) {continue}
+            const c = q.split(",")
+            const btn = elm("button",{},[
+                elm("span",{class:"l"},[textelm(c[0])]),
+                elm("span",{class:"r"},[textelm(c[1])]),
+            ])
+            const fname = base+c[0];
+            btn.onclick = ()=>{
+                typingurl = fname;
+                status = "title";
+                init();
+            }
+            menudiv.appendChild(btn)
+        }
+    }
+    menu.replaceChildren(menudiv);
+}
+
+
+function fRead(filename) {
+    var hr = new XMLHttpRequest();
+    hr.open("GET", filename, false);
+    hr.send(null);
+    if (hr.status == 200 || hr.status == 304) {
+        return hr.responseText.replace(/\r\n/g, "\n");
+    }else {console.error("err " + filename);return false;}
+};
+
+var QuesInputScrollMax = 0;
+function updateView() {
+    Title.innerText = typing.title;
+    if (status=="title") {
+        QuesInput.scrollTo({left:0,behavior:"instant"});
+        playArea.style.display = "block";
+        menuArea.style.display = "none";
+        resultArea.style.display = "none";
+        Next.replaceChildren(typingnextQues);
+        Ques.replaceChildren(elm("span",{},[textelm("スペースを押して開始")]));
+        Input.replaceChildren(elm("span",{},[textelm("")]));
+        Next.replaceChildren(elm("span",{},[textelm("エスケープを押してメニューへ")]));
+    }
+    else if (status=="play") {
+        Ques.replaceChildren(typingline.getQuesView());
+        Input.replaceChildren(typingline.getInputView());
+        Next.replaceChildren(typingnextQues);
+        Ques.querySelector("rt .s0, rt .s1, rt .s2, .noruby.s0, .noruby.s1, .noruby.s2")?.classList.add('next');
+        Typed.innerText = typing.type;
+        Failed.innerText = typing.failed;
+        Accuracy.innerText = ((typing.type-typing.failed)/typing.type*100).toString().slice(0,5);
+        ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nーーーーーーーー\nスコア: ${getScore()}　pt\n速さ: ${Speed.innerText}  type/s\n精度: ${Accuracy.innerText}　　%\n時間: ${Time.innerText}　s\n打鍵: ${Typed.innerText}　　type\n誤打: ${Failed.innerText}　　type\n問題: 「${typing.title}」\n　　　${TypeHistory.innerText.slice(0,5)+"..."}\n${typing.end.toLocaleString("ja-JP")}\nーーーーーーーー\nhttps://neknaj.bem130.com/typingweb/index`);
+        QuesInputScrollMax = Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left-50;
+        //QuesInput.scrollTo({left:QuesInputScrollMax});
+        //Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))}px`
+    }
+    else if (status=="menu") {
+        QuesInput.scrollTo({left:0,behavior:"instant"});
+        playArea.style.display = "none";
+        menuArea.style.display = "block";
+        resultArea.style.display = "none";
+    }
+    else if (status=="finish") {
+        playArea.style.display = "none";
+        menuArea.style.display = "none";
+        resultArea.style.display = "block";
+        Score.innerText = getScore();
+    }
+}
+
+function everyFrameUpdate() {
+    if (status=="play") {
+        Time.innerText = (Date.now()-typing.start)/1000;
+        Speed.innerText = ((typing.type-typing.failed)/((Date.now()-typing.start)/1000)).toString().slice(0,7);
+        if (QuesInput.scrollLeft<QuesInputScrollMax) {
+            QuesInput.scrollBy({left:(QuesInputScrollMax-QuesInput.scrollLeft)/20,behavior:"instant"})
+        }
+        Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))-Math.max(Input.querySelector(".s0")?.getBoundingClientRect().width,Input.querySelector(".s2")?.getBoundingClientRect().width)}px`
+    }
+    requestAnimationFrame(everyFrameUpdate);
+}
+
+function makeChart() {
+    typingchart = new Chart(TypingGraph,{type:"line",data:{labels:[],datasets:[
+            {
+                label: "total speed",
+                data: [],
+                borderColor: "rgba(255,100,255,1)",
+            },
+            {
+                label: "instantaneous speed",
+                data: [],
+                borderColor: "rgba(100,255,255,1)",
+            }
+        ]},
+    });
+}
+function shiftChart() {
+    typingchart.data.labels.shift();
+    typingchart.data.datasets.forEach((x)=>{x.data.shift();});
+}
+function clearChart() {
+    typingchart.data.labels = [];
+    typingchart.data.datasets.forEach((x)=>{x.data=[];});
+}
+
+function getQuartile(arr) {
+    let sorted = arr.map((x)=>{return x;}).sort((a,b)=>{return a-b;}); // sort array
+    let median = function(x) {
+        if(x.length%2==0){
+            return (x[x.length/2-1]+x[x.length/2])/2;
+        }else{
+            return x[(x.length-1)/2]
+        }
+    }
+    let quartile = function(x) { // require sorted array
+        let ret = Array(5);
+        ret[0] = x[0];
+        ret[4] = x[x.length-1];
+        ret[2] = median(x);
+        ret[1] = median( x.filter((x)=>{return x<ret[2]}) )
+        ret[3] = median( x.filter((x)=>{return x>ret[2]}) )
+        return ret;
+    }
+    return quartile(sorted);
+}
+function getScore() {
+    let data = typingchart.data.datasets[1].data.slice(4);
+    let quartile = getQuartile(data);
+    let speed = ((typing.type-typing.failed)/((typing.end-typing.start)/1000));
+    let accuracy = (typing.type-typing.failed)/typing.type;
+    console.log(quartile,speed,accuracy);
+    console.info(speed*100,quartile[1]*10,quartile[3]*50,quartile[4]*50,typing.type*0.1,`精度ペナルティ ${accuracy}`)
+    let score = (speed*100+quartile[1]*10+quartile[3]*50+quartile[4]*50+typing.type*0.1)*accuracy;
+    return Math.floor(isNaN(score)?`算出不可`:score);
+}
+
+setInterval(updateView,1000);
+everyFrameUpdate();
+
+</script>
+<script>
+
+document.addEventListener("keydown",(e)=>{
+    if (status=="play"&&e.key=="Escape") {
+        TypeHistory.appendChild(typingline.getQuesView());
+        typing.end = new Date();
+        updateView();
+        status = "finish";
+        updateView();
+        return
+    }
+    if (e.key=="F1") {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+        else {
+            document.body.requestFullscreen();
+        }
+    }
+    console.log("keydown",e.key)
+    if (status=="title") {
+        if (e.key==" ") {
+            clearChart()
+            QuesInputScrollMax = 0;
+            QuesInput.scrollTo({left:0,behavior:"instant"});
+            Input.style.paddingLeft;
+            typing.line = 0;
+            status = "play";
+            typingline = new Typing(typing.lines[typing.line],keyboard);
+            if (typing.lines.length>1) {
+                typingnextQues = new Typing(typing.lines[typing.line+1],keyboard).getQuesView();
+            } else { typingnextQues = elm("span",{},[textelm("end")]); }
+            typing.start = Date.now();
+            TypeHistory.replaceChildren(elm("span",{},[]));
+            updateView();
+        }
+        else if (e.key=="Escape") {
+            status = "menu";
+        }
+    }
+    else if (status=="play") {
+        e.preventDefault();
+        if (e.key.length>1) {return}
+        var [key,endline] = typingline.key(e.key);
+        typing.end = new Date();
+        typing.type++;
+        if (key==false) {
+            typing.failed++;
+        }
+        if (key) { // graph
+            typingchart.data.labels.push((Date.now()-typing.start)/1000);
+            console.log(typingchart)
+            typingchart.data.datasets[0].data.push((typing.type-typing.failed)/((Date.now()-typing.start)/1000));
+            const len = 4;
+            if (typingchart.data.labels.length>len) {
+                console.log(Date.now()-typing.start,typingchart.data.labels[typingchart.data.labels.length-1-len]*1000)
+                typingchart.data.datasets[1].data.push(len/((Date.now()-typing.start-typingchart.data.labels[typingchart.data.labels.length-1-len]*1000)/1000));
+            }
+            else {
+                typingchart.data.datasets[1].data.push((typing.type-typing.failed)/((Date.now()-typing.start)/1000));
+            }
+            if (typingchart.data.labels.length>500) {
+                shiftChart();
+            }
+            typingchart.update();
+        }
+        console.log(key,endline);
+        if (endline) {
+            typing.line++;
+            TypeHistory.appendChild(typingline.getQuesView());
+            console.log(typing.lines.length,typing.line+1)
+            if (typing.lines.length>typing.line) {
+                typingline = new Typing(typing.lines[typing.line],keyboard);
+                QuesInputScrollMax = 0;
+                QuesInput.scrollTo({left:0,behavior:"instant"});
+                Input.style.paddingLeft;
+                if (typing.lines.length>typing.line+1) {
+                    typingnextQues = new Typing(typing.lines[typing.line+1],keyboard).getQuesView();
+                }
+                else {
+                    typingnextQues = elm("span",{},[textelm("end")]);
+                }
+            }
+            else {
+                updateView();
+                status = "finish";
+            }
+        }
+    }
+    else if (status=="finish") {
+        if (e.key==" ") {
+            init();
+            status = "title";
+        }
+    }
+    else if (status=="menu") {
+    }
+    updateView();
+},false);
+
+
+</script>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@200&display=swap');
+</style>
+<style>
+    * {
+        user-select: none;
+        font-family: "Noto Sans JP", sans-serif;
+        font-optical-sizing: auto;
+        font-style: normal;
+        color-scheme: dark;
+    }
+    .apptitle {
+        font-size: 35px;
+        text-align: center;
+        font-weight: inherit;
+        height: 45px;
+        margin: 10px;
+        text-wrap: nowrap;
+    }
+    body {
+        background-color: rgb(0, 2, 10);
+        color: white;
+        position: fixed;
+        padding: 0;
+        margin: 0;
+        font-size: 30px;
+    }
+    #imgOutArea {
+        height: 100%;
+        width: 100%;
+        overflow: auto;
+        position: relative;
+        padding: 0;
+        margin: 0;
+    }
+    #imgOutArea>canvas {
+        cursor: crosshair;
+        touch-action: none;
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        transform-origin: top left;
+        background-color: rgba(255, 255, 255, 0.3);
+    }
+    #mainarea {
+        height: 100dvh;
+        width: 100dvw;
+    }
+    
+    #playArea {
+        font-size: 40px;
+        & #QuesInput {
+            max-width: calc(100% - 80px);
+            overflow-x: hidden;
+            white-space: nowrap;
+        }
+        & #Ques {
+            padding-right: calc(100% - 100px);
+            & rt {
+                font-size: 35px;
+                color: rgb(255, 255, 255);
+                & .s1 {
+                    color: rgb(255, 255, 255);
+                }
+                & .s2 {
+                    color: rgb(255, 173, 173);
+                }
+                & .s3 {
+                    color: rgb(164, 164, 255);
+                }
+                & .s4 {
+                    color: rgb(255, 132, 132);
+                }
+            }
+            & rb, & .noruby {
+                font-size: 80px;
+                color: rgb(255, 255, 255);
+                &.s1 {
+                    color: rgb(255, 255, 255);
+                }
+                &.s2 {
+                    color: rgb(255, 173, 173);
+                }
+                &.s3 {
+                    color: rgb(164, 164, 255);
+                }
+                &.s4 {
+                    color: rgb(255, 132, 132);
+                }
+            }
+        }
+        & #Input>span>span {
+            font-size: 80px;
+            color: rgb(255, 255, 255);
+            &.s2 {
+                color: rgb(255, 173, 173);
+            }
+            &.s3 {
+                color: rgb(164, 164, 255);
+            }
+            &.s4 {
+                color: rgb(255, 132, 132);
+            }
+        }
+    }
+    
+    #playArea {
+        position: relative;
+        height: 100%;
+        &>div#Title {
+            font-size: 60px;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-wrap: nowrap;
+        }
+        &>div#QuesInput {
+            position: absolute;
+            top: calc(50% - 50.5px + 5% - 2% - 90px);
+            left: 40px;
+            width: max-content;
+            height: max-content;
+            &>div {
+                width: fit-content;
+            }
+        }
+        &>div#Next {
+            position: absolute;
+            right: 40px;
+            bottom: 10px;
+            max-width: calc(100% - 80px);
+            overflow: hidden;
+            white-space: nowrap;
+            & rt {
+                font-size: 20px;
+            }
+            & rb, & .noruby {
+                font-size: 40px;
+            }
+        }
+    }
+
+    #TypeHistory {
+        max-height: 100%;
+        overflow-y: auto;
+        word-break: break-word;
+        &>span {
+            display: block;
+        }
+        & rt {
+            font-size: 10px;
+            color: rgb(51, 51, 51);
+            & .s1 {
+                color: rgb(255, 255, 255);
+            }
+            & .s2 {
+                color: rgb(255, 173, 173);
+            }
+            & .s3 {
+                color: rgb(164, 164, 255);
+            }
+            & .s4 {
+                color: rgb(255, 132, 132);
+            }
+        }
+        & rb, & .noruby {
+            font-size: 20px;
+            color: rgb(51, 51, 51);
+            &.s1 {
+                color: rgb(255, 255, 255);
+            }
+            &.s2 {
+                color: rgb(255, 173, 173);
+            }
+            &.s3 {
+                color: rgb(164, 164, 255);
+            }
+            &.s4 {
+                color: rgb(255, 132, 132);
+            }
+        }
+    }
+    
+    #menuArea {
+        width: 100%;
+        height: 100%;
+        margin-top: -10px;
+        & .resizer_Vcontainer {
+            height: calc(100% - 65px);
+        }
+        & #menuUrls {
+            color: inherit;
+            background: none;
+            outline: none;
+            border: none;
+            width: 100%;
+            height: 100%;
+            resize: none;
+        }
+        & #menu {
+            height: 100%;
+            display: block;
+            overflow-x: auto;
+        }
+        & #menu button {
+            position: relative;
+            padding: 10px;
+            margin-left: 100px;
+            width: calc(100% - 130px);
+            font-size: 30px;
+            height: 50px;
+            background: #2c2c2c;
+            border: 1px solid gray;
+            border-radius: 5px;
+            text-wrap: nowrap;
+            & span {
+                position: absolute;
+                top: 0;
+                &.l {
+                    left: 10px;
+                }
+            }
+            &:hover {
+                background: #4c4c4c;
+            }
+        }
+        & .invalid {
+            margin-left: 100px;
+            font-size: 20px;
+        }
+    }
+
+    #Info {
+        & tr>*:nth-child(1),& tr>*:nth-child(3) {
+            width: min-content;
+            white-space: nowrap;
+            padding: 0px 30px 0px 30px;
+        }
+        & tr>*:nth-child(2) {
+            width: 100%;
+        }
+    }
+    #ScoreArea {
+        text-align: center;
+        & #Score {
+            font-size: 100px;
+            margin: 10px;
+        }
+    }
+</style>

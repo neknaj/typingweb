@@ -3,11 +3,11 @@
     <head>
         <title>Neknaj Typing Web</title>
         <meta charset="utf-8">
-        <meta property="og:url" content="https://neknaj.bem130.com/repos/typingweb/">
+        <meta property="og:url" content="https://neknaj.bem130.com/typingweb/index">
         <meta property="og:site_name" content="Neknaj Typing Web" />
         <meta property="og:title" content="Neknaj Typing Web">
         <meta property="og:description" content="typing software in web browser">
-        <meta property="og:image" content="https://neknaj.bem130.com/repos/typingweb/thumbnail.png">
+        <meta property="og:image" content="https://neknaj.bem130.com/typingweb/thumbnail.png">
         <meta property="description" content="typing software in web browser">
         <meta name="twitter:card" content="summary"></meta>
         <meta name="twitter:creator" content="@bem130"></meta>
@@ -16,6 +16,7 @@
         <script src="typing.js"></script>
         <script src="cdom.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.bundle.js"></script>
+        <script src="defaultmenu.js"></script>
     </head>
     <body lang="jp">
         <div class="resizer_Hcontainer" id="mainarea" data-proportion="5:2">
@@ -107,11 +108,11 @@
 <script>
 
 if (localStorage.TypingWebMenu==null) {
-    localStorage.TypingWebMenu = `menu.csv`;
+    localStorage.TypingWebMenu = TypingDefaultMenu;
 }
 menuUrls.value = localStorage.TypingWebMenu;
 
-ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nhttps://neknaj.bem130.com/repos/typingweb/`);
+ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nhttps://neknaj.bem130.com/typingweb/index`);
 
 var typingurl;
 var typing;
@@ -165,7 +166,11 @@ function updateMenu() {
     for (let url of urls) {
         menudiv.appendChild(elm("div",{},[textelm(url)]));
         if (url=="") {continue;}
-        const data = fRead(url);
+        let data;
+        try {
+            data = fRead(url);
+        }
+        catch { continue; }
         if (data==false) {continue;}
         let base;
         console.log(data.replace(/\r\n/g,"\n").split("\n")[0])
@@ -220,11 +225,12 @@ function updateView() {
         Ques.replaceChildren(typingline.getQuesView());
         Input.replaceChildren(typingline.getInputView());
         Next.replaceChildren(typingnextQues);
+        Ques.querySelector("rt .s0, rt .s1, rt .s2, .noruby.s0, .noruby.s1, .noruby.s2")?.classList.add('next');
         Typed.innerText = typing.type;
         Failed.innerText = typing.failed;
         Accuracy.innerText = ((typing.type-typing.failed)/typing.type*100).toString().slice(0,5);
-        ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nーーーーーーーー\nスコア: ${getScore()}　pt\n速さ: ${Speed.innerText}  type/s\n精度: ${Accuracy.innerText}　　%\n時間: ${Time.innerText}　s\n打鍵: ${Typed.innerText}　　type\n誤打: ${Failed.innerText}　　type\n問題: 「${typing.title}」\n　　　${TypeHistory.innerText.slice(0,5)+"..."}\n${typing.end.toLocaleString("ja-JP")}\nーーーーーーーー\nhttps://neknaj.bem130.com/repos/typingweb/`);
-        QuesInputScrollMax = Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left-50;
+        ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb Anki\nーーーーーーーー\nスコア: ${getScore()}　pt\n速さ: ${Speed.innerText}  type/s\n精度: ${Accuracy.innerText}　　%\n時間: ${Time.innerText}　s\n打鍵: ${Typed.innerText}　　type\n誤打: ${Failed.innerText}　　type\n問題: 「${typing.title}」\n　　　${TypeHistory.innerText.slice(0,5)+"..."}\n${typing.end.toLocaleString("ja-JP")}\nーーーーーーーー\nhttps://neknaj.bem130.com/typingweb/index`);
+        QuesInputScrollMax = Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left-playArea.getBoundingClientRect().width/2;
         //QuesInput.scrollTo({left:QuesInputScrollMax});
         //Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))}px`
     }
@@ -476,8 +482,11 @@ document.addEventListener("keydown",(e)=>{
             & rt {
                 font-size: 35px;
                 color: rgb(255, 255, 255);
-                & .s1 {
-                    color: rgb(255, 255, 255);
+                & .s0.next, & .s1.next {
+                    color: rgba(255, 255, 255, 0.6) !important;
+                }
+                & .s0, & .s1 {
+                    color: rgba(255, 255, 255, 0.01);
                 }
                 & .s2 {
                     color: rgb(255, 173, 173);
@@ -492,8 +501,11 @@ document.addEventListener("keydown",(e)=>{
             & rb, & .noruby {
                 font-size: 80px;
                 color: rgb(255, 255, 255);
-                &.s1 {
-                    color: rgb(255, 255, 255);
+                &.s0.next, &.s1.next {
+                    color: rgba(255, 255, 255, 0.6) !important;
+                }
+                &.s0, &.s1 {
+                    color: rgba(255, 255, 255, 0.01);
                 }
                 &.s2 {
                     color: rgb(255, 173, 173);
@@ -509,6 +521,12 @@ document.addEventListener("keydown",(e)=>{
         & #Input>span>span {
             font-size: 80px;
             color: rgb(255, 255, 255);
+            &.s0 {
+                color: rgba(255, 255, 255, 0.7);
+            }
+            &.s1 {
+                color: rgba(255, 255, 255, 0.7);
+            }
             &.s2 {
                 color: rgb(255, 173, 173);
             }
@@ -549,6 +567,7 @@ document.addEventListener("keydown",(e)=>{
             max-width: calc(100% - 80px);
             overflow: hidden;
             white-space: nowrap;
+            color: rgba(255, 255, 255, 0.3);
             & rt {
                 font-size: 20px;
             }
