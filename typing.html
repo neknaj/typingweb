@@ -107,10 +107,11 @@
 <script>const ntqparser = module.exports.parse;</script>
 <script>
 
-if (localStorage.TypingWebMenu==null) {
-    localStorage.TypingWebMenu = TypingDefaultMenu;
+const LSkey = "NeknajTypingWebMenu"
+if (localStorage[LSkey]==null) {
+    localStorage[LSkey] = TypingDefaultMenu;
 }
-menuUrls.value = localStorage.TypingWebMenu;
+menuUrls.value = localStorage[LSkey];
 
 ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nhttps://neknaj.bem130.com/typingweb/index`);
 
@@ -158,7 +159,7 @@ function loadntq(filename) {
 menuUrls.oninput = updateMenu;
 menuUrls.onchange = updateMenu;
 function updateMenu() {
-    localStorage.TypingWebMenu = menuUrls.value;
+    localStorage[LSkey] = menuUrls.value;
     const menudiv = elm("div",{},[]);
     const urls = menuUrls.value.replace(/\r\n/g,"\n").split("\n");
     console.log("updatemenu")
@@ -229,7 +230,8 @@ function updateView() {
         Typed.innerText = typing.type;
         Failed.innerText = typing.failed;
         Accuracy.innerText = ((typing.type-typing.failed)/typing.type*100).toString().slice(0,5);
-        ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nーーーーーーーー\nスコア: ${getScore()}　pt\n速さ: ${Speed.innerText}  type/s\n精度: ${Accuracy.innerText}　　%\n時間: ${Time.innerText}　s\n打鍵: ${Typed.innerText}　　type\n誤打: ${Failed.innerText}　　type\n問題: 「${typing.title}」\n　　　${TypeHistory.innerText.slice(0,5)+"..."}\n${typing.end.toLocaleString("ja-JP")}\nーーーーーーーー\nhttps://neknaj.bem130.com/typingweb/index`);
+        //ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb Anki\nーーーーーーーー\nスコア: ${getScore()}　pt\n速さ: ${Speed.innerText}  type/s\n精度: ${Accuracy.innerText}　　%\n時間: ${Time.innerText}　s\n打鍵: ${Typed.innerText}　　type\n誤打: ${Failed.innerText}　　type\n問題: 「${typing.title}」\n　　　${TypeHistory.innerText.slice(0,5)+"..."}\n${typing.end.toLocaleString("ja-JP")}\nーーーーーーーー\nhttps://neknaj.bem130.com/typingweb/index`);
+        ShareLink.href = ShareLink.dataset.linkbase+encodeURIComponent(`#NeknajTypingWeb\nhttps://neknaj.bem130.com/typingresult.html?score=${getScore()}&time=${Time.innerText}&type=${Typed.innerText}&failed=${Failed.innerText}`);
         QuesInputScrollMax = Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left-50;
         //QuesInput.scrollTo({left:QuesInputScrollMax});
         //Input.style.paddingLeft = `${(Ques.querySelector("rb.s0, rb.s1, rb.s2, .noruby.s0, .noruby.s1, .noruby.s2")?.getBoundingClientRect().left-Ques.getBoundingClientRect().left)-Input.getBoundingClientRect().width+Number(Input.style.paddingLeft.slice(0,-2))}px`
@@ -315,7 +317,7 @@ function getScore() {
     return Math.floor(isNaN(score)?`算出不可`:score);
 }
 
-setInterval(updateView,1000);
+//setInterval(updateView,1000);
 everyFrameUpdate();
 
 </script>
@@ -422,13 +424,13 @@ document.addEventListener("keydown",(e)=>{
 
 </script>
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@200&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@100&display=swap');
 </style>
 <style>
     * {
+        font-family: "Noto Serif JP", serif;
+        font-weight: 100;
         user-select: none;
-        font-family: "Noto Sans JP", sans-serif;
-        font-optical-sizing: auto;
         font-style: normal;
         color-scheme: dark;
     }
@@ -441,6 +443,7 @@ document.addEventListener("keydown",(e)=>{
         text-wrap: nowrap;
     }
     body {
+        font-optical-sizing: auto;
         background-color: rgb(0, 2, 10);
         color: white;
         position: fixed;
